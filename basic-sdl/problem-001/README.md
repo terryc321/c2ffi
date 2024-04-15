@@ -126,7 +126,6 @@ void alter2(int *p){
 
 
 
-
 [SDL2 QueryTexture C Reference](https://wiki.libsdl.org/SDL2/SDL_QueryTexture)
 
 ```C
