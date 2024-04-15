@@ -25,7 +25,7 @@ void alter(struct Rect *p){
 rm -f simple simple.so
 # build binary executable to test sanity from c 
 gcc -Wall -o simple simple.c
-# make shared library load into common lisp using cffi
+# make shared library "simple.so" load into common lisp using cffi
 gcc -Wall -shared -o simple.so -fPIC simple.c
 ```
 the common lisp code for the rectangle 
