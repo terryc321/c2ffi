@@ -1,24 +1,7 @@
 
 #|
 
-foreign structures
-Question (1) : How do i do this in cffi ?
-
-struct {
-int x;
-int y;
-int w;
-int h;
-} SDL_Rect ;
-
-SDL_Rect r;
-
-SDL_QueryTexture( , , , &r.w , &r.h)
-r.w is width of texture
-r.h is height of texture
-
-QueryTexture procedure sets the values of structure pass in ?
-
+event identified - some rudimentary form of escape hatch opening when window close button pressed
 
 |#
 
@@ -458,10 +441,12 @@ QueryTexture procedure sets the values of structure pass in ?
     
     ;; the event loop
     ;;(loop while (not *close*) do
+
     
     ;; assuming char is same as byte 
     ;; know SDL_Event is 56 bytes ? int is 4 bytes , 56 / 4 => 14
     ;;(cffi:with-foreign-object (ev-ptr :int 14) t)
+    (setq *close* nil)
     
     (cffi:with-foreign-object (ev-ptr :int 64)
       (loop while (not *close*) do
@@ -472,31 +457,40 @@ QueryTexture procedure sets the values of structure pass in ?
 	(sdl-renderpresent render)
 
 	;; process events ...
-	(let ((has-poll-event t))
-	  (loop while has-poll-event do
-	    (case (sdl-pollevent ev-ptr)
-	      ((0) (setq has-poll-event nil))
-	      (t 
-	       ;; switch event type 
-	       (let ((ev-type (cffi:mem-aref ev-ptr :int 0)))
-		 (format t "event type ~a ~%" ev-type)
-		 (case ev-type
-		   ((+sdl-quit+)
-		    (format t "quitting !~%")
-		    (setq has-poll-event nil)
-		    (setq *close* t))
-		   ((+sdl-mousemotion+)
-		    (format t "mouse moving !~%"))
-		   ((+sdl-mousebuttondown+)
-		    (format t "mouse down !~%"))
-		   ((+sdl-mousebuttonup+)
-		    (format t "mouse up !~%"))
-		   ((+sdl-keyup+)
-		    (format t "key up !~%"))
-		   ((+sdl-keydown+)
-		    (format t "key down !~%"))
-		   ))))))))
-    
+	(catch 'poll-events
+	  (loop while t do
+	    (let ((poll (sdl-pollevent ev-ptr)))
+	      (cond
+		((zerop poll) (throw 'poll-events t))
+		(t
+		 ;; switch event type 
+		 (let ((ev-type (cffi:mem-aref ev-ptr :int 0)))
+		   (format t "event type ~a ~%" ev-type)
+		   (cond
+		     ((= ev-type +sdl-quit+)
+		      (format t "quitting !~%")
+		      (setq has-poll-event nil)
+		      (setq *close* t))
+		     
+		     ((= ev-type +sdl-mousemotion+)
+		      (format t "mouse moving !~%"))
+		     ((= ev-type +sdl-mousebuttondown+)
+		      (format t "mouse down !~%"))
+
+		     ((= ev-type +sdl-mousebuttonup+)
+		      (format t "mouse up !~%"))
+
+		     ((= ev-type +sdl-keyup+)
+		      (format t "key up !~%"))
+		     
+		     ((= ev-type +sdl-keyup+)
+		      (format t "key up !~%"))
+		     
+		     ((= ev-type +sdl-keydown+)
+		      (format t "key down !~%"))
+		     
+		     )))))))))
+	
     
     ;; roughly 1 60th of a second
     ;; (sdl-delay (floor (/ 1000 60)))
