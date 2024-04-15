@@ -1,14 +1,6 @@
 
 ### structure pass to c code
 
-```common-lisp
-(defcstruct rect
-  (x :int)
-  (y :int)
-  (w :int)
-  (h :int))
-```
-
 ```C 
 /* rect in c with procedure to mutate called alter */
 struct Rect{
@@ -27,12 +19,39 @@ void alter(struct Rect *p){
 ```
 
 ```bash
+#!/bin/bash
+# ----  build script ---
 # remove old binary and shared library
 rm -f simple simple.so
 # build binary executable to test sanity from c 
 gcc -Wall -o simple simple.c
 # make shared library load into common lisp using cffi
 gcc -Wall -shared -o simple.so -fPIC simple.c
+```
+the common lisp code for the rectangle 
+
+```common-lisp
+(defcstruct rect
+  (x :int)
+  (y :int)
+  (w :int)
+  (h :int))
+```
+along with a foreign procedure declaration for alter
+```common-lisp
+
+;; load simple.so shared library 
+
+(cffi:define-foreign-library libsimple
+  (t (:default "~/code/c2ffi/basic-sdl/problem-001/simple")))
+	
+;; import the library
+
+(cffi:use-foreign-library libsimple)
+
+;; declare alter to be a procedure returns nothing but takes a rect structure
+
+(cffi:defcfun "alter" :void (rect :pointer))
 ```
 
 
