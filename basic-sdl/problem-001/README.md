@@ -3,6 +3,8 @@
 
 ### Lisp <-> C : Structures
 
+Here is a simple example of a flat C structure typical with points and rectangles
+
 ```C 
 /* rect in c with procedure to mutate called alter */
 struct Rect{
@@ -19,6 +21,8 @@ void alter(struct Rect *p){
   p->h = 3456;
 }
 ```
+
+Here below is a simple bash script to create the shared library object code
 
 ```bash
 #!/bin/bash
