@@ -148,7 +148,13 @@ void alter3(int *p, int *q){
 
 We find w has value 57 , h has value of 89 as expected .
 
+# Unions in C and in Lisp 
 
+One way to think about a union is that it is just a blob of data of a certain size , number of bytes.
+
+Not until drill down into working out how want to interpret the blob of data does the union 
+
+make much sense, where we can think about extracting or masking bits from the blob.
 
 [SDL2 QueryTexture C Reference](https://wiki.libsdl.org/SDL2/SDL_QueryTexture)
 
