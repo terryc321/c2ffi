@@ -111,6 +111,7 @@ cffi:mem-ref ptr :int - null ptr exception
       (format t "should be 32 : x = ~a : y = ~a : width => ~a : height => ~a ~%" x y w h)	
       (cffi:foreign-free ptr))))
 |#
+
 (cffi:defcstruct rect
   (x :int)
   (y :int)
@@ -140,11 +141,6 @@ cffi:mem-ref ptr :int - null ptr exception
 |#
 
 
-
-
-
-
-
 ;; void alter(struct Rect *p){
 ;;   p->x = 1234;
 ;;   p->y = 5678;
@@ -163,6 +159,13 @@ cffi:mem-ref ptr :int - null ptr exception
 
 (defun foo-2 ()
   (cffi:with-foreign-object (ptr '(:struct rect))
+    (alter2 (cffi:pointer-address ptr))
+    (format t "[beta] : cffi:mem ref ptr = ~a ~%" (cffi:mem-aref ptr :int 0)))
+  )
+
+
+(defun foo-2b ()
+  (cffi:with-foreign-object (ptr :int)
     (alter2 (cffi:pointer-address ptr))
     (format t "[beta] : cffi:mem ref ptr = ~a ~%" (cffi:mem-aref ptr :int 0)))
   )

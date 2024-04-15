@@ -228,7 +228,7 @@ QueryTexture procedure sets the values of structure pass in ?
 ;;                               :BIT-ALIGNMENT 32)))
 
 (defcstruct sdl-rect
-  "Point structure."
+  "Rectangle structure."
   (x :int)
   (y :int)
   (w :int)
@@ -243,8 +243,9 @@ QueryTexture procedure sets the values of structure pass in ?
 ;;                            (|access| (:POINTER :INT)) (|w| (:POINTER :INT))
 ;;                            (|h| (:POINTER :INT))))
 
+
 ;; receive value int dest.w dest.h
-(defcfun "SDL_QueryTexture" :int
+(defcfun ("SDL_QueryTexture" %sdl-query-texture) :int
   (texture :pointer)
   (format :pointer)
   (access (:pointer :int))
@@ -363,7 +364,7 @@ QueryTexture procedure sets the values of structure pass in ?
 		   (sdl-createrenderer window index render-flags)))
     (format t "render = ~a ~%" render)
 
-    (setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/lettuce.jpeg"))
+    (setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
     (format t "surface = ~a ~%" surface)
     
     (setq texture (sdl-createtexturefromsurface render surface))
@@ -372,35 +373,31 @@ QueryTexture procedure sets the values of structure pass in ?
     ;; free surface as not used no more
     (sdl-freesurface surface)
 
-    ;; ;; dereference 
-    ;; (let ((ptr (foreign-alloc :int :initial-contents '(13 14 15 16))))
-    ;;   ;;(sdl-querytexture texture %null-ptr %null-ptr &dest.w &dest.h)
-    ;;   ;; SDL_QueryTexture(texture,NULL,NULL,&dest.w , &dest.h)
-    ;;   (sdl-querytexture texture
-    ;; 			%null-ptr
-    ;; 			%null-ptr
-    ;; 			(mem-aref ptr :int 0)
-    ;; 			(mem-aref ptr :int 1))
-      
-    ;;   (let ((x (mem-aref ptr :int 0))
-    ;; 	    (y (mem-aref ptr :int 1))
-    ;; 	    (w (mem-aref ptr :int 2))
-    ;; 	    (h (mem-aref ptr :int 3)))
-    ;; 	(format t "x = ~a : y = ~a : width => ~a : height => ~a ~%" x y w h)	
-    ;; 	(foreign-free ptr)))
+    ;; working code to get width and height of a texture - i.e image size width x height
+    (cffi:with-foreign-object (ptr '(:struct sdl-rect))
+      (%sdl-query-texture
+       texture 
+       (cffi:null-pointer) ;; NULL
+       (cffi:null-pointer) ;; NULL
+       (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'w)
+       (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'h))       
+      (format t "texture width and height is : w = ~a : h = ~a ~%"
+	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
+	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
+    
     
     (sdl-renderclear render)
     (sdl-rendercopy render texture %null-ptr %null-ptr)
     (sdl-renderpresent render)
 
-    ;; the event loop
-    ;;(loop while (not *close*) do
-    (loop for i from 0 to 100 do
-      ;; sdl-event event
-      (loop while (sdl-pollevent event) do
-	;; switch event type 
+    ;; ;; the event loop
+    ;; ;;(loop while (not *close*) do
+    ;; (loop for i from 0 to 100 do
+    ;;   ;; sdl-event event
+    ;;   (loop while (sdl-pollevent event) do
+    ;; 	;; switch event type 
       
-	    ))
+    ;; 	    ))
     
     
     ;; roughly 1 60th of a second
