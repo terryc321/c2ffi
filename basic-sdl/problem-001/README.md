@@ -122,7 +122,31 @@ void alter2(int *p){
 (cffi:with-foreign-object (ptr '(:struct rect))
  (alter2 (cffi:pointer-address ptr))
  (format t "[beta] : cffi:mem ref ptr = ~a ~%" (cffi:mem-aref ptr :int 0)))
+
+;; equivalent
+(cffi:with-foreign-object (ptr :int)
+ (alter2 (cffi:pointer-address ptr))
+ (format t "[beta] : cffi:mem ref ptr = ~a ~%" (cffi:mem-aref ptr :int 0)))
 ```
+
+## If want to alter two items in a structure 
+```C
+void alter3(int *p, int *q){
+  printf("alter3 : c ptr address of p is %p : of q is %p\n" , p , q);
+  *p = 57;
+  *q = 89;
+}
+```
+```lisp
+(cffi:with-foreign-object (ptr '(:struct rect))
+  (alter3 (cffi:pointer-address (cffi:foreign-slot-pointer ptr '(:struct rect) 'w))
+ 	      (cffi:pointer-address (cffi:foreign-slot-pointer ptr '(:struct rect) 'h)))
+  (format t "[delta] : w = ~a : h = ~a ~%"
+	  (cffi:foreign-slot-value ptr '(:struct rect) 'w)
+	  (cffi:foreign-slot-value ptr '(:struct rect) 'h)))
+```
+
+We find w has value 57 , h has value of 89 as expected .
 
 
 
