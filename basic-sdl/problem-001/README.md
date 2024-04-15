@@ -1,5 +1,7 @@
 
-### structure pass to c code
+# Guide to Common Lisp Foreign Function Interface CFFI
+
+### Lisp <-> C : Structures
 
 ```C 
 /* rect in c with procedure to mutate called alter */
@@ -28,6 +30,26 @@ gcc -Wall -o simple simple.c
 # make shared library "simple.so" load into common lisp using cffi
 gcc -Wall -shared -o simple.so -fPIC simple.c
 ```
+let us now tell common lisp about this shared library we have just created
+```common-lisp
+
+;; load cffi from quicklisp
+(ql:quickload :cffi) ;; common lisp foreign function interface cffi
+(ql:quickload :uiop) ;; universally mis-understood input/output poop 
+
+;; declare clean test package
+(defpackage :test (:use :cl))
+ 
+(in-package :test)
+
+;; load simple.so shared library 
+(cffi:define-foreign-library libsimple
+  (t (:default "~/code/c2ffi/basic-sdl/problem-001/simple")))
+	
+;; import the library
+(cffi:use-foreign-library libsimple)
+```
+
 the common lisp code for the rectangle 
 
 ```common-lisp
@@ -37,22 +59,14 @@ the common lisp code for the rectangle
   (w :int)
   (h :int))
 ```
+
 along with a foreign procedure declaration for alter
 ```common-lisp
-
-;; load simple.so shared library 
-
-(cffi:define-foreign-library libsimple
-  (t (:default "~/code/c2ffi/basic-sdl/problem-001/simple")))
-	
-;; import the library
-
-(cffi:use-foreign-library libsimple)
-
 ;; declare alter to be a procedure returns nothing but takes a rect structure
-
 (cffi:defcfun "alter" :void (rect :pointer))
 ```
+
+
 
 
 [SDL2 QueryTexture C Reference](https://wiki.libsdl.org/SDL2/SDL_QueryTexture)
