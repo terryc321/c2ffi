@@ -1421,18 +1421,123 @@
 ;;   (height :int))
 
 
+;; (define-condition my-spurious-err (error)
+;;   ())
 
+;; (AUTOWRAP:DEFINE-FOREIGN-FUNCTION
+;;  '(SDL-CREATE-RGB-SURFACE "SDL_CreateRGBSurface") '(:POINTER SDL-SURFACE)
+;;  '((|flags| UINT32) (|width| :INT) (|height| :INT) (|depth| :INT)
+;;    (|Rmask| UINT32) (|Gmask| UINT32) (|Bmask| UINT32) (|Amask| UINT32)))
+
+(cffi:defcfun ("SDL_CreateRGBSurface" sdl-create-rgb-surface) :pointer
+  (flags :uint32) ;; unused should be set to zero
+  (width :int)
+  (height :int)
+  (depth :int)
+  (red-mask :uint32)
+  (green-mask :uint32)
+  (blue-mask :uint32)
+  (alpha-mask :uint32))
+
+;; (AUTOWRAP:DEFINE-FOREIGN-RECORD 'SDL-SURFACE :STRUCT 768 64
+;;                                 '((:FLAGS UINT32 :BIT-SIZE 32 :BIT-OFFSET 0
+;;                                    :BIT-ALIGNMENT 32)
+;;                                   (:FORMAT (:POINTER SDL-PIXEL-FORMAT)
+;;                                    :BIT-SIZE 64 :BIT-OFFSET 64
+;;                                    :BIT-ALIGNMENT 64)
+;;                                   (:W :INT :BIT-SIZE 32 :BIT-OFFSET 128
+;;                                    :BIT-ALIGNMENT 32)
+;;                                   (:H :INT :BIT-SIZE 32 :BIT-OFFSET 160
+;;                                    :BIT-ALIGNMENT 32)
+;;                                   (:PITCH :INT :BIT-SIZE 32 :BIT-OFFSET 192
+;;                                    :BIT-ALIGNMENT 32)
+;;                                   (:PIXELS (:POINTER :VOID) :BIT-SIZE 64
+;;                                    :BIT-OFFSET 256 :BIT-ALIGNMENT 64)
+;;                                   (:USERDATA (:POINTER :VOID) :BIT-SIZE 64
+;;                                    :BIT-OFFSET 320 :BIT-ALIGNMENT 64)
+;;                                   (:LOCKED :INT :BIT-SIZE 32 :BIT-OFFSET
+;;                                    384 :BIT-ALIGNMENT 32)
+;;                                   (:LIST-BLITMAP (:POINTER :VOID) :BIT-SIZE
+;;                                    64 :BIT-OFFSET 448 :BIT-ALIGNMENT 64)
+;;                                   (:CLIP-RECT SDL-RECT :BIT-SIZE 128
+;;                                    :BIT-OFFSET 512 :BIT-ALIGNMENT 32)
+;;                                   (:MAP (:POINTER SDL-BLIT-MAP) :BIT-SIZE
+;;                                    64 :BIT-OFFSET 640 :BIT-ALIGNMENT 64)
+;;                                   (:REFCOUNT :INT :BIT-SIZE 32 :BIT-OFFSET
+;;                                    704 :BIT-ALIGNMENT 32)))
+
+;; typedef struct SDL_Surface
+;; {
+;;     Uint32 flags;               /**< Read-only */
+;;     SDL_PixelFormat *format;    /**< Read-only */
+;;     int w, h;                   /**< Read-only */
+;;     int pitch;                  /**< Read-only */
+;;     void *pixels;               /**< Read-write */
+
+;;     /** Application data associated with the surface */
+;;     void *userdata;             /**< Read-write */
+
+;;     /** information needed for surfaces requiring locks */
+;;     int locked;                 /**< Read-only */
+
+;;     /** list of BlitMap that hold a reference to this surface */
+;;     void *list_blitmap;         /**< Private */
+
+;;     /** clipping information */
+;;     SDL_Rect clip_rect;         /**< Read-only */
+
+;;     /** info for fast blit mapping to other surfaces */
+;;     SDL_BlitMap *map;           /**< Private */
+
+;;     /** Reference count -- used when freeing surface */
+;;     int refcount;               /**< Read-mostly */
+;; } SDL_Surface;
+
+
+(cffi:defcstruct sdl-surface-struct
+  (flags :uint32);      read only
+  (sdl-pixelformat :pointer); read-only
+  (width :int) ; read only
+  (height :int); read only
+  (pitch :int) ; read only
+  (pixels :pointer) ; read-write
+  (userdata :pointer) ; read-write
+  (int :locked) ; read only
+  (list-blitmap :pointer) ; private
+  (clip-rect :int 4) ; read only SDL_Rect 4 ints x y w h 
+  (sdl-blitmap :pointer) ; private
+  (refcount :int) ; read mostly
+  )
+
+
+;; (autowrap:define-foreign-function
+;;  '(cairo-image-surface-create-for-data
+;;    "cairo_image_surface_create_for_data")
+;;  '(:pointer cairo-surface-t)
+;;  '((|data| (:string)) (|format| cairo-format-t) (|width| :int)
+;;    (|height| :int) (|stride| :int)))
+(cffi:defcfun ("cairo_image_surface_create_for_data" cairo-image-surface-create-for-data) :pointer
+  (data :string)  
+  (format :int)
+  (width :int)
+  (height :int)
+  (stride :int))
 
 
 (defun demo ()
   (let ((window nil)
 	(render nil)
-	(surface nil)
-	;;(surface2 nil)
+	(sdl-surface nil)
+	(cairo-surface nil)
 	(cr nil)
 	(texture nil)
 	;;(texture2 nil)
 	)
+
+    ;;(make-condition 'my-spurious-err)
+    ;;(warning "foo")
+    ;;(break)
+    
     
     (sdl-init (logior +sdl-init-video+ +sdl-init-events+))
     (img-init (logior +img-init-png+))
@@ -1451,6 +1556,7 @@
 				   640
 				   480 (logior
 					+sdl-window-shown+
+					+sdl-window-allow-highdpi+
 					+sdl-window-resizable+)))
 
     (setq render (let ((render-flags (logior +sdl-renderer-accelerated+
@@ -1463,18 +1569,59 @@
     ;;(setq surface (sdl-get-window-surface window))
     ;;(format t "surface = ~a ~%" surface)
     
+    ;;(setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
+    ;; possibly probe size of screen perhaps ??
+    ;; SDL_Surface *sdlsurf = SDL_CreateRGBSurface (
+    ;; 						 flags, width, height, 32,
+    ;; 						 0x00FF0000, /* Rmask */
+    ;; 						 0x0000FF00, /* Gmask */
+    ;; 						 0x000000FF, /* Bmask */
+    ;; 						 0); /* Amask */
+    ;; /* ... make sure sdlsurf is locked or doesn't need locking ... */
     
-    (setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
+    (let ((width 640)
+	  (height 480)
+	  (flags 0) ;; flags always 0 unused
+	  (depth 32)
+	  (red-mask #x00FF0000)
+	  (green-mask #x0000FF00)
+	  (blue-mask #x00000FF)
+	  (alpha-mask 0))
+      (setq sdl-surface (sdl-create-rgb-surface flags
+						width
+						height
+						depth
+						red-mask
+						green-mask
+						blue-mask
+						alpha-mask)))
+
+    (when (eq (cffi:null-pointer) sdl-surface)
+      (error "sdl-create-rgb-surface failed "))
+
+    
+
+    
+    ;; cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
+    ;; sdlsurf->pixels,
+    ;; CAIRO_FORMAT_RGB24,
+    ;; sdlsurf->w,
+    ;; sdlsurf->h,
+    ;; sdlsurf->pitch);
+
+    
     ;;(setq surface (img-load "woman.jpeg"))
     ;; (format t "surface = ~a ~%" surface)
 
-    ;; -- cairo surface 2 ---
-    ;;(setq surface2 (cairo-image-surface-create +cairo-format-argb32+ 240 80))
+    ;; -- cairo surface 2 ---  ;;; argb32 = 0 ??
+    ;;(setq  (cairo-image-surface-create +cairo-format-argb32+ 240 80))
     ;;(setq surface (cairo-image-surface-create +cairo-format-argb32+ 640 480))
     ;;(setq cr (cairo-create surface2))
     
-    (format t "creating cairo from surface ~%" )
-    (setq cr (cairo-create surface))
+    ;;(format t "creating cairo from surface ~%" )
+    
+    ;; shorthand 
+    (setq cr cairo-surface)
     ;;(setq cr (cairo-image-surface-create 
 	      (format t "cr = ~a~%" cr)
 	      
@@ -1493,7 +1640,7 @@
 	      ;;   (format t "running ...~%"))
 	      
 	      
-	      (setq texture (sdl-createtexturefromsurface render surface))
+	      (setq texture (sdl-createtexturefromsurface render sdl-surface))
      (format t "texture = ~a ~%" texture)
 
     ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
@@ -1553,7 +1700,7 @@
 
 	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
 
-	(setq cr (cairo-create surface))
+	;;(setq cr (cairo-create surface))
 	;;(setq cr (cairo-create surface))
 	(cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
 	(cairo-set-font-size cr 32.0d0)
@@ -1561,7 +1708,7 @@
 	(cairo-move-to cr 10.0d0 50.0d0)
 	(cairo-show-text cr "Hello, world!")
 
-	(setq texture (sdl-createtexturefromsurface render surface))
+	(setq texture (sdl-createtexturefromsurface render sdl-surface))
 	
 	;; texture 
 	(sdl-rendercopy render texture %null-ptr %null-ptr)
