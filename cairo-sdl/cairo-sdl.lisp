@@ -1,20 +1,25 @@
 ;;;; cairo-sdl.lisp
 
+
 (in-package #:cairo-sdl)
+
+(declaim (optimize (speed 0)(debug 3)(safety 3)))
+
 
 (defparameter %null-ptr (cffi:null-pointer))
 
 (cffi:define-foreign-library lib-sdl2
-    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2")))
+    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2"))) ;; drop .so 
 (cffi:use-foreign-library lib-sdl2)
 
 (cffi:define-foreign-library lib-sdl2-image
-    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image")))
+    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image"))) ;; drop .so
 (cffi:use-foreign-library lib-sdl2-image)
 
 (cffi:define-foreign-library lib-cairo
-    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image")))
+    (t (:default "/usr/lib/x86_64-linux-gnu/libcairo"))) ;; drop .so
 (cffi:use-foreign-library lib-cairo)
+
 
 
 ;; check SDL_CreateWindow defined
@@ -1257,12 +1262,178 @@
 (defparameter *mouse-y* 0)
 
 
+;; -------- some cairo utilities
+;; #include <cairo.h>
+;; int
+;; main (int argc, char *argv[])
+;; {
+;; already got a surface
+;;
+;; x        cairo_surface_t *surface =
+;;             cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 240, 80);
+;; x        cairo_t *cr =
+;;             cairo_create (surface);
+;; x         cairo_select_font_face (cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+;; x         cairo_set_font_size (cr, 32.0);
+;; x        cairo_set_source_rgb (cr, 0.0, 0.0, 1.0);
+;; x        cairo_move_to (cr, 10.0, 50.0);
+;;         cairo_show_text (cr, "Hello, world");
+;;         cairo_destroy (cr);
+;;         cairo_surface_write_to_png (surface, "hello.png");
+;;         cairo_surface_destroy (surface);
+;;         return 0;
+;; }
+
+;; look at ffi-cairo.lisp from lib-cairo in the repo for signatures 
+;; (autowrap:define-foreign-function '(cairo-create "cairo_create")
+;;                                   '(:pointer cairo-t)
+;;                                   '((|target| (:pointer cairo-surface-t))))
+
+(cffi:defcfun ("cairo_create" cairo-create) :pointer
+  (surface :pointer))
+
+
+(defparameter +cairo-font-slant-normal+ 0)
+(defparameter +cairo-font-slant-italic+ 1)
+(defparameter +cairo-font-slant-oblique+ 2)
+
+(defparameter +cairo-font-weight-normal+ 0)
+(defparameter +cairo-font-weight-bold+ 1)
+
+;; (autowrap:define-foreign-function
+;;  '(cairo-select-font-face "cairo_select_font_face") ':void
+;;  '((|cr| (:pointer cairo-t)) (|family| (:string))
+;;    (|slant| cairo-font-slant-t) (|weight| cairo-font-weight-t)))
+(cffi:defcfun ("cairo_select_font_face" cairo-select-font-face) :void
+  (cr :pointer)
+  (family :string)
+  (slant :int) ;; enum
+  (weight :int) ;; enum
+  )
+
+    ;; (autowrap:define-foreign-function
+    ;;  '(cairo-set-font-size "cairo_set_font_size") ':void
+    ;;  '((|cr| (:pointer cairo-t)) (|size| :double)))
+(cffi:defcfun ("cairo_set_font_size" cairo-set-font-size) :void
+  (cr :pointer)
+  (size :double))
+
+
+(defparameter +cairo-format-argb32+ 0)
+(defparameter +cairo-format-rgb24+ 1)
+(defparameter +cairo-format-a8+ 2)
+(defparameter +cairo-format-a1+ 3)
+(defparameter +cairo-format-rgb16-565+ 4)
+(defparameter +cairo-format-rgb30+ 5)
+(defparameter +cairo-format-rgb96f+ 6)
+(defparameter +cairo-format-rgba128f+ 7)
+
+    ;; (autowrap:define-foreign-function
+    ;;  '(cairo-image-surface-create "cairo_image_surface_create")
+    ;;  '(:pointer cairo-surface-t)
+    ;;  '((|format| cairo-format-t) (|width| :int) (|height| :int)))
+(cffi:defcfun ("cairo_image_surface_create" cairo-image-surface-create) :pointer
+  (format :int) ;; enum
+  (width :int)
+  (height :int)
+  )
+
+    ;; (autowrap:define-foreign-function
+    ;;  '(cairo-set-source-rgb "cairo_set_source_rgb") ':void
+    ;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
+    ;;    (|blue| :double)))
+(cffi:defcfun ("cairo_set_source_rgb" cairo-set-source-rgb) :void
+  (cr :pointer)
+  (red :double)
+  (green :double)
+  (blue :double)
+  )
+
+;; (autowrap:define-foreign-function '(cairo-move-to "cairo_move_to") ':void
+;;   '((|cr| (:pointer cairo-t)) (|x| :double)
+;;     (|y| :double)))
+(cffi:defcfun ("cairo_move_to" cairo-move-to) :void
+  (cr :pointer)
+  (x :double)
+  (y :double)
+  )
+
+;; (autowrap:define-foreign-function '(cairo-show-text "cairo_show_text")
+;;                                   ':void
+;;                                   '((|cr| (:pointer cairo-t))
+;;                                     (|utf8| (:string))))
+(cffi:defcfun ("cairo_show_text" cairo-show-text) :void
+  (cr :pointer)
+  (utf8 :string))
+
+;; (autowrap:define-foreign-function '(cairo-destroy "cairo_destroy") ':void
+;;   '((|cr| (:pointer cairo-t))))
+(cffi:defcfun ("cairo_destroy" cairo-destroy) :void
+  (cr :pointer))
+
+;; screenshot like facility
+;; (autowrap:define-foreign-function
+;;  '(cairo-surface-write-to-png "cairo_surface_write_to_png") 'cairo-status-t
+;;  '((|surface| (:pointer cairo-surface-t)) (|filename| (:string))))
+(cffi:defcfun ("cairo_surface_write_to_png" cairo-surface-write-to-png) :void
+  (surface :pointer)
+  (filename :string))
+
+;;
+;; (autowrap:define-foreign-function
+;;  '(cairo-surface-destroy "cairo_surface_destroy") ':void
+;;  '((|surface| (:pointer cairo-surface-t))))
+(cffi:defcfun ("cairo_surface_destroy" cairo-surface-destroy) :void
+  (surface :pointer))
+
+#|
+;; ----- example in lisp converted , caveat the event loop --- 
+(let ((cr (cairo-create surface)))
+  (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+  (cairo-set-font-size cr 32.0d0)
+  (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+  (cairo-move-to cr 10.0d0 50.0d0)
+  (cairo-show-text cr "Hello, world!")
+  ;; <--- event loop code goes here --->
+  (cairo-destroy cr)
+  (cairo-surface-write-to-png surface "hello.png")
+  (cairo-surface-destroy surface))
+|#
+
+  
+  
+;; SDL_Surface * SDL_GetWindowSurface(SDL_Window * window);
+;; (AUTOWRAP:DEFINE-FOREIGN-FUNCTION
+;;     '(SDL-GET-WINDOW-SURFACE "SDL_GetWindowSurface") '(:POINTER SDL-SURFACE)
+;;   '((|window| (:POINTER SDL-WINDOW))))
+(cffi:defcfun ("SDL_GetWindowSurface" sdl-get-window-surface) :pointer
+  (window :pointer))
+
+
+;; duplicate !!
+;; ;; cairo_surface_t *
+;; ;; cairo_image_surface_create (cairo_format_t format,
+;; ;;                             int width,
+;; ;;                             int height);
+;; (cffi:defcfun ("cairo_image_surface_create" cairo-image-surface-create) :pointer
+;;   (format :int)
+;;   (width :int)
+;;   (height :int))
+
+
+
+
 
 (defun demo ()
   (let ((window nil)
 	(render nil)
 	(surface nil)
-	(texture nil))
+	;;(surface2 nil)
+	(cr nil)
+	(texture nil)
+	;;(texture2 nil)
+	)
+    
     (sdl-init (logior +sdl-init-video+ +sdl-init-events+))
     (img-init (logior +img-init-png+))
 
@@ -1288,16 +1459,52 @@
 		   (sdl-createrenderer window index render-flags)))
     (format t "render = ~a ~%" render)
 
-    ;;(setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
-    (setq surface (img-load "woman.jpeg"))
-    (format t "surface = ~a ~%" surface)
+    ;; get surface of window 
+    ;;(setq surface (sdl-get-window-surface window))
+    ;;(format t "surface = ~a ~%" surface)
     
-    (setq texture (sdl-createtexturefromsurface render surface))
-    (format t "texture = ~a ~%" texture)
+    
+    (setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
+    ;;(setq surface (img-load "woman.jpeg"))
+    ;; (format t "surface = ~a ~%" surface)
+
+    ;; -- cairo surface 2 ---
+    ;;(setq surface2 (cairo-image-surface-create +cairo-format-argb32+ 240 80))
+    ;;(setq surface (cairo-image-surface-create +cairo-format-argb32+ 640 480))
+    ;;(setq cr (cairo-create surface2))
+    
+    (format t "creating cairo from surface ~%" )
+    (setq cr (cairo-create surface))
+    ;;(setq cr (cairo-image-surface-create 
+	      (format t "cr = ~a~%" cr)
+	      
+	      (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+	      (format t "font face selected ~%")
+	      (cairo-set-font-size cr 32.0d0)
+	      (format t "font size set 32 ~%")    
+	      (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+	      (format t "cairo rgb set ~%")        
+	      (cairo-move-to cr 10.0d0 50.0d0)
+	      (format t "cairo move to 10 50~%")
+	      (cairo-show-text cr "Hello, world!")
+	      (format t "hello world~%")
+
+	      ;; (loop while t do
+	      ;;   (format t "running ...~%"))
+	      
+	      
+	      (setq texture (sdl-createtexturefromsurface render surface))
+     (format t "texture = ~a ~%" texture)
+
+    ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
+    ;; (format t "texture2 = ~a ~%" texture2)
 
     ;; free surface as not used no more
-    (sdl-freesurface surface)
+    ;;(sdl-freesurface surface)
+    
+    ;;(sdl-freesurface surface2)
 
+    #|
     ;; working code to get width and height of a texture - i.e image size width x height
     (cffi:with-foreign-object (ptr '(:struct sdl-rect))
       (%sdl-query-texture
@@ -1309,6 +1516,8 @@
       (format t "texture width and height is : w = ~a : h = ~a ~%"
 	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
 	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
+
+    |#
     
     (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUnd ??
     (sdl-renderclear render)
@@ -1327,6 +1536,7 @@
     ;;(cffi:with-foreign-object (ev-ptr :int 14) t)
     (setq *close* nil)
 
+    
     ;; int4 * 64 => 256 bytes , only 56 bytes needed for event
     (cffi:with-foreign-object (ev-ptr :int 64) 
       (loop while (not *close*) do
@@ -1335,11 +1545,32 @@
 	
 	(sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
 	(sdl-renderclear render)
-	(sdl-rendercopy render texture %null-ptr %null-ptr)
+
+	;; draw a line
 	
 	(sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
 	(sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
-    
+
+	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
+
+	(setq cr (cairo-create surface))
+	;;(setq cr (cairo-create surface))
+	(cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+	(cairo-set-font-size cr 32.0d0)
+	(cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+	(cairo-move-to cr 10.0d0 50.0d0)
+	(cairo-show-text cr "Hello, world!")
+
+	(setq texture (sdl-createtexturefromsurface render surface))
+	
+	;; texture 
+	(sdl-rendercopy render texture %null-ptr %null-ptr)
+
+	;; texture2 --- will that not just write over it ?
+	;;(sdl-rendercopy render texture2 %null-ptr %null-ptr)
+		
+	
+	;; show line
 	(sdl-renderpresent render)
 
 	;; process events ...
@@ -1357,7 +1588,7 @@
 		      ;; exit fast by throwing 
 		     ((= ev-type +sdl-quit+)
 		      (format t "quitting !~%")
-		      (setq has-poll-event nil)
+		      ;;(setq has-poll-event nil)
 		      (setq *close* t)
 		      (throw 'poll-events t))
 
@@ -1439,13 +1670,13 @@
 		     ((= ev-type +sdl-keyup+)
 		      
 		      ;; possible got whole thing topsy-turvey
-		      (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
-			    (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
-			    (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
-			    (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
-			    (repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
+		      (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
+			    ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
+			    ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
+			    ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
+			    ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
 			    (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
-			    (sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
+			    ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
 			    (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))
 			
 			(format t "key up : scancode ~a => ~a : modifier ~a => ~a ~%"
@@ -1463,13 +1694,13 @@
 		     ((= ev-type +sdl-keydown+)
 
 		      ;; possible got whole thing topsy-turvey
-		      (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
-			    (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
-			    (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
-			    (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
-			    (repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
+		      (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
+			    ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
+			    ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
+			    ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
+			    ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
 			    (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
-			    (sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
+			    ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
 			    (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))			    
 			(format t "key down : scancode ~a => ~a : modifier ~a => ~a~%"
 				scancode
@@ -1493,7 +1724,7 @@
     ;; (sdl-delay (floor (/ 1000 60)))
     ;;(sleep 3)
     
-    (sdl-destroytexture texture)
+    ;;(sdl-destroytexture texture)
     (sdl-destroyrenderer render)
     (sdl-destroywindow window)
 
