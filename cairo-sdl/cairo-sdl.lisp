@@ -162,7 +162,7 @@
 ;;   SDL_DestroyTexture(tex);
 ;; (DEFINE-FOREIGN-FUNCTION '(SDL-DESTROY-TEXTURE "SDL_DestroyTexture") ':VOID
 ;;   '((|texture| (:POINTER SDL-TEXTURE))))
-(cffi:defcfun "SDL_DestroyTexture" :void
+(cffi:defcfun ("SDL_DestroyTexture" sdl-destroy-texture) :void
   (texture :pointer))
 
 
@@ -1348,6 +1348,20 @@
   (blue :double)
   )
 
+    ;; (autowrap:define-foreign-function
+    ;;  '(cairo-set-source-rgba "cairo_set_source_rgba") ':void
+    ;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
+    ;;    (|blue| :double) (|alpha| :double)))
+(cffi:defcfun ("cairo_set_source_rgba" cairo-set-source-rgba) :void
+  (cr :pointer)
+  (red :double)
+  (green :double)
+  (blue :double)
+  (alpha :double)
+  )
+
+
+
 ;; (autowrap:define-foreign-function '(cairo-move-to "cairo_move_to") ':void
 ;;   '((|cr| (:pointer cairo-t)) (|x| :double)
 ;;     (|y| :double)))
@@ -1493,6 +1507,7 @@
 ;; } SDL_Surface;
 
 
+
 (cffi:defcstruct sdl-surface-struct
   (flags :uint32);      read only
   (sdl-pixelformat :pointer); read-only
@@ -1557,6 +1572,30 @@
 (cffi:defcfun ("cairo_stroke" cairo-stroke) :void
   (cr :pointer))
 
+;; (AUTOWRAP:DEFINE-FOREIGN-FUNCTION '(SDL-GET-ERROR "SDL_GetError")
+;;                                   '(:STRING) 'NIL)
+(cffi:defcfun ("SDL_GetError" sdl-get-error) :string)
+
+;;cairo_format_stride_for_width ()
+;; (cairo-format-stride-for-width +cairo-format-rgb24+ 640)
+;;int cairo_format_stride_for_width (cairo_format_t format, int width);
+(cffi:defcfun ("cairo_format_stride_for_width" cairo-format-stride-for-width) :int
+  (format :int)
+  (width :int))
+
+
+;; sdl lock and unlock
+(cffi:defcfun ("SDL_LockSurface" sdl-lock-surface) :int
+  (surface :pointer))
+
+(cffi:defcfun ("SDL_UnlockSurface" sdl-unlock-surface) :int
+  (surface :pointer))
+
+
+;; unsigned char *
+;; cairo_image_surface_get_data (cairo_surface_t *surface);
+(cffi:defcfun ("cairo_image_surface_get_data" cairo-image-surface-get-data) :pointer
+  (surface :pointer))
 
 
 
@@ -1592,14 +1631,17 @@
 				   640
 				   480 (logior
 					+sdl-window-shown+
-					+sdl-window-allow-highdpi+
-					+sdl-window-resizable+)))
+					;;+sdl-window-allow-highdpi+
+					;;+sdl-window-resizable+
+					)))
 
-    (setq render (let ((render-flags (logior +sdl-renderer-accelerated+
-					     +sdl-renderer-targettexture+))
+    (setq render (let ((render-flags (logior
+				      +sdl-renderer-accelerated+
+				      +sdl-renderer-targettexture+))
 		       (index -1))
 		   (sdl-createrenderer window index render-flags)))
-    (format t "render = ~a ~%" render)
+    
+    (format t "render = ~a : ~a%" render (sdl-get-error))
 
     ;; get surface of window 
     ;;(setq surface (sdl-get-window-surface window))
@@ -1631,21 +1673,60 @@
 						green-mask
 						blue-mask
 						alpha-mask)))
+    (format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
 
+    (format t "sdl-surface locked ? [~a] ~%"
+	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
+
+    ;;(sdl-lock-surface sdl-surface)
+    
+    (format t "sdl-surface locked ? [~a] ~%"
+	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
+    
     (when (eq (cffi:null-pointer) sdl-surface)
       (error "sdl-create-rgb-surface failed "))
 
-    (setq cairo-surface (cairo-image-surface-create-for-data
-			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels)
-			 +cairo-format-rgb24+
-			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'width)
-			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'height)
-			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pitch)))
+    
+    
+    ;; pitch width height and pixel data
+    (let* ((pitch (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pitch))
+	   (width (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'width))
+	   (height (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'height))
+	   (pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels))
+	   (stride (cairo-format-stride-for-width +cairo-format-rgb24+ width)))
 
+      (format t "pitch ~a vs stride ~a ~%" pitch stride)
+      
+      (format t "pixels ~a ~%" pixels)
+
+      (let ((pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels)))
+	(loop for i from 0 to 100 do
+	  (let ((red (cffi:mem-ref pixels :char   (* i 3)))
+		(green (cffi:mem-ref pixels :char (+ 1 (* i 3))))
+		(blue (cffi:mem-ref pixels :char  (+ 2  (* i 3)))))
+	    (format t "~A ~a ~a : " red green blue))))
+      
+	      
+      
+      (setq cairo-surface (cairo-image-surface-create-for-data			   
+			 pixels
+			 +cairo-format-rgb24+
+			 width
+			 height
+			 pitch
+			 ))
+      (format t " data ~a ~%" pixels)
+      (format t "width ~a : height ~a : pitch ~a : ~%" width height pitch )
+      (format t "created cairo-surface : err[~a] ~%" (sdl-get-error)))
+    
+      
+    
+    
     ;; is null-pointer null ?
     (when (eq (cffi:null-pointer) cairo-surface)
       (error "cairo-image-surface-create-for-data failed "))
-
+    (format t "cairo surface = ~a ~%" cairo-surface)
+    
     
     
     ;; cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
@@ -1670,28 +1751,78 @@
     (setq cr cairo-surface)
     ;;(setq cr (cairo-image-surface-create 
     (format t "cr = ~a~%" cr)
+
+    (cairo-set-source-rgb cr 0.5d0 0.3d0 1.0d0)
+    (format t "set source rgb : err[~a]~%" (sdl-get-error))
+    
+    (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
+    (format t "cairo rectangle : err[~a]~%" (sdl-get-error))
+    (cairo-fill cr);
+    (format t "cairo fill : err[~a]~%" (sdl-get-error))
+    
+    (cairo-surface-flush cr)
+    (format t "cairo flush : err[~a]~%" (sdl-get-error))
+    
     
     (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
-    (format t "font face selected ~%")
+    (format t "cairo select font face : err[~a]~%" (sdl-get-error))
+    
     (cairo-set-font-size cr 32.0d0)
-    (format t "font size set 32 ~%")    
-    (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
-    (format t "cairo rgb set ~%")        
+    (format t "cairo set font size : err[~a]~%" (sdl-get-error))
+        
+    (cairo-set-source-rgb cr 0.2d0 0.2d0 1.0d0)
+    (format t "cairo set rgb : err[~a]~%" (sdl-get-error))
+    
     (cairo-move-to cr 10.0d0 50.0d0)
-    (format t "cairo move to 10 50~%")
+    (format t "cairo move to 10 , 50 : err[~a] ~%" (sdl-get-error))
+    
     (cairo-show-text cr "Hello, world!")
-    (format t "hello world~%")
+    (format t "cairo show text hello : err[~a] ~%" (sdl-get-error))
 
+    (cairo-fill cr);
+    (format t "cairo fill : err[~a] ~%" (sdl-get-error))
+        
+    (cairo-stroke cr);
+    (format t "cairo stroke : err[~a] ~%" (sdl-get-error))
+
+
+    (format t "--- cairo pixels ---~%")
+    (let ((pixels (cairo-image-surface-get-data cr)))
+
+      (loop for i from 0 to 100 do
+	(let ((red (cffi:mem-ref pixels :char   (* i 3)))
+	      (green (cffi:mem-ref pixels :char (+ 1 (* i 3))))
+	      (blue (cffi:mem-ref pixels :char  (+ 2  (* i 3)))))
+	  (format t "~A ~a ~a : " red green blue)))
+      
+      (loop for i from 0 to 100 do
+	(setf (cffi:mem-ref pixels :char   (* i 3)) (random 255))
+	(setf (cffi:mem-ref pixels :char (+ 1 (* i 3))) (random 255))
+	(setf (cffi:mem-ref pixels :char (+ 2 (* i 3))) (random 255))
+	    ))
+    
+    
+
+    
     ;; flush surface
     (cairo-surface-flush cr)
+    (format t "cairo surface flush : err[~a] ~%" (sdl-get-error))
+
     
     ;; (loop while t do
     ;;   (format t "running ...~%"))
     
     
-    (setq texture (sdl-createtexturefromsurface render sdl-surface))
-    (format t "texture = ~a ~%" texture)
+    ;; (setq texture (sdl-createtexturefromsurface render sdl-surface))
+    ;; (format t "texture = ~a ~%" texture)
+    ;; (sdl-rendercopy render texture %null-ptr %null-ptr)
 
+    (sdl-renderpresent render)
+    (format t "sdl renderpresent render : err[~a] ~%" (sdl-get-error))
+    
+    
+    ;;(sleep 3)
+    
     ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
     ;; (format t "texture2 = ~a ~%" texture2)
 
@@ -1715,8 +1846,8 @@
 
     |#
     
-    (sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUnd ??
-    (sdl-renderclear render)
+    ;; (sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUnd ??
+    ;; (sdl-renderclear render)
     
     ;;(sdl-rendercopy render texture %null-ptr %null-ptr)
     ;;(sdl-renderpresent render)
@@ -1739,23 +1870,17 @@
 
 	;; ;; redraw screen
 	
-	(sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUND ?
-	(sdl-renderclear render)
+	;; (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
+	;; (sdl-renderclear render)
 
 	;; draw a line
 
 	;; draw a rectangle
 	;;(cairo_set_source_rgba cr  1 1 1 1.0);
-	(cairo-set-source-rgb cr 1.0d0 1.0d0 1.0d0)
-        (cairo-rectangle cr  0d0  0d0 640d0 480d0);
+	(cairo-set-source-rgb cr 0.5d0 0.3d0 1.0d0)
+        (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
 	(cairo-fill cr);
-	    
 	
-	(sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
-	(sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
-
-	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
-
 	
 	;;(setq cr (cairo-create surface))
 	;;(setq cr (cairo-create surface))
@@ -1764,23 +1889,32 @@
 	(cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
 	(cairo-move-to cr 10.0d0 50.0d0)
 	(cairo-show-text cr "Hello, world!")
+	;;(cairo-fill cr);
+	(cairo-stroke cr)
+	
 	
         ;; flush cairo surface
 	(cairo-surface-flush cr)
+
+	(sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
+	(sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
+	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
+
 	
 	(setq texture (sdl-createtexturefromsurface render sdl-surface))
-
+	;;(setq texture (sdl-createtexturefromsurface render cr))
 	
 	;; texture 
-	(sdl-rendercopy render texture %null-ptr %null-ptr)
-
+	
 	;; texture2 --- will that not just write over it ?
-	;;(sdl-rendercopy render texture2 %null-ptr %null-ptr)
-		
+	(sdl-rendercopy render texture %null-ptr %null-ptr)
 	
 	;; show line
 	(sdl-renderpresent render)
 
+	;; ?? 
+        (sdl-destroy-texture texture)
+	
 	;; process events ...
 	(catch 'poll-events
 	  (loop while t do
