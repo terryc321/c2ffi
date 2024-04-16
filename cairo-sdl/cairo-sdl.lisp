@@ -5,19 +5,18 @@
 
 (declaim (optimize (speed 0)(debug 3)(safety 3)))
 
-
 (defparameter %null-ptr (cffi:null-pointer))
 
 (cffi:define-foreign-library lib-sdl2
-    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2"))) ;; drop .so 
+  (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2"))) ;; drop .so 
 (cffi:use-foreign-library lib-sdl2)
 
 (cffi:define-foreign-library lib-sdl2-image
-    (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image"))) ;; drop .so
+  (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image"))) ;; drop .so
 (cffi:use-foreign-library lib-sdl2-image)
 
 (cffi:define-foreign-library lib-cairo
-    (t (:default "/usr/lib/x86_64-linux-gnu/libcairo"))) ;; drop .so
+  (t (:default "/usr/lib/x86_64-linux-gnu/libcairo"))) ;; drop .so
 (cffi:use-foreign-library lib-cairo)
 
 
@@ -122,16 +121,16 @@
 
 
 
-    ;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-CLEAR "SDL_RenderClear") ':INT
-    ;;                          '((|renderer| (:POINTER SDL-RENDERER))))
+;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-CLEAR "SDL_RenderClear") ':INT
+;;                          '((|renderer| (:POINTER SDL-RENDERER))))
 (cffi:defcfun "SDL_RenderClear" :int
   (render :pointer))
 
-    ;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-COPY "SDL_RenderCopy") ':INT
-    ;;                          '((|renderer| (:POINTER SDL-RENDERER))
-    ;;                            (|texture| (:POINTER SDL-TEXTURE))
-    ;;                            (|srcrect| (:POINTER SDL-RECT))
-    ;;                            (|dstrect| (:POINTER SDL-RECT))))
+;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-COPY "SDL_RenderCopy") ':INT
+;;                          '((|renderer| (:POINTER SDL-RENDERER))
+;;                            (|texture| (:POINTER SDL-TEXTURE))
+;;                            (|srcrect| (:POINTER SDL-RECT))
+;;                            (|dstrect| (:POINTER SDL-RECT))))
 (cffi:defcfun "SDL_RenderCopy" :int
   (render :pointer)
   (texture :pointer)
@@ -144,23 +143,23 @@
 (cffi:defcfun "SDL_RenderPresent" :void
   (render :pointer))
 
-    ;; (DEFINE-FOREIGN-FUNCTION
-    ;;  '(SDL-CREATE-TEXTURE-FROM-SURFACE "SDL_CreateTextureFromSurface")
-    ;;  '(:POINTER SDL-TEXTURE)
-    ;;  '((|renderer| (:POINTER SDL-RENDERER))
-    ;;    (|surface| (:POINTER SDL-SURFACE))))
+;; (DEFINE-FOREIGN-FUNCTION
+;;  '(SDL-CREATE-TEXTURE-FROM-SURFACE "SDL_CreateTextureFromSurface")
+;;  '(:POINTER SDL-TEXTURE)
+;;  '((|renderer| (:POINTER SDL-RENDERER))
+;;    (|surface| (:POINTER SDL-SURFACE))))
 (cffi:defcfun "SDL_CreateTextureFromSurface" :pointer
   (render :pointer) (surface :pointer))
 
 ;; forgetting to put :pointer and not :int
 
-    ;; (DEFINE-FOREIGN-FUNCTION '(SDL-FREE-SURFACE "SDL_FreeSurface") ':VOID
-    ;;                          '((|surface| (:POINTER SDL-SURFACE))))
+;; (DEFINE-FOREIGN-FUNCTION '(SDL-FREE-SURFACE "SDL_FreeSurface") ':VOID
+;;                          '((|surface| (:POINTER SDL-SURFACE))))
 (cffi:defcfun "SDL_FreeSurface" :void
   (surface :pointer))
 
-  ;; // destroy texture
-  ;;   SDL_DestroyTexture(tex);
+;; // destroy texture
+;;   SDL_DestroyTexture(tex);
 ;; (DEFINE-FOREIGN-FUNCTION '(SDL-DESTROY-TEXTURE "SDL_DestroyTexture") ':VOID
 ;;   '((|texture| (:POINTER SDL-TEXTURE))))
 (cffi:defcfun "SDL_DestroyTexture" :void
@@ -168,12 +167,12 @@
 
 
 ;;   // destroy renderer
-  ;;   SDL_DestroyRenderer(rend);
+;;   SDL_DestroyRenderer(rend);
 ;; (DEFINE-FOREIGN-FUNCTION '(SDL-DESTROY-RENDERER "SDL_DestroyRenderer")
 ;;   ':VOID '((|renderer| (:POINTER SDL-RENDERER))))
 (cffi:defcfun "SDL_DestroyRenderer" :void
   (renderer :pointer))
- 
+
 ;;   // destroy window
 ;;   SDL_DestroyWindow(win);
 ;; (DEFINE-FOREIGN-FUNCTION '(SDL-DESTROY-WINDOW "SDL_DestroyWindow") ':VOID
@@ -373,7 +372,7 @@
 (DEFPARAMETER +SDL-USEREVENT+ 32768)
 (DEFPARAMETER +SDL-LASTEVENT+ 65535)
 
-	     
+
 ;;SDL_SetRenderDrawColor(renderer, 242, 242, 242, 255);
 ;; (DEFINE-FOREIGN-FUNCTION
 ;;  '(SDL-SET-RENDER-DRAW-COLOR "SDL_SetRenderDrawColor") ':INT
@@ -1213,9 +1212,9 @@
       (when (lam mod +kmod-shift+)  '() '("any shift"))
       (when (lam mod +kmod-alt+)    '() '("any alt"))
       (when (lam mod +kmod-gui+)    '() '("any gui") )))))
-    
-    
-    
+
+
+
 ;; typedef struct SDL_MouseButtonEvent
 ;; {
 ;;     Uint32 type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
@@ -1229,7 +1228,7 @@
 ;;     Sint32 x;           /**< X coordinate, relative to window */
 ;;     Sint32 y;           /**< Y coordinate, relative to window */
 ;; } SDL_MouseButtonEvent;
-			
+
 (cffi:defcstruct sdl-mouse-button-event
   (type :uint32);     
   (timestamp :uint32);
@@ -1245,9 +1244,9 @@
 
 
 
-    ;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-DRAW-LINE "SDL_RenderDrawLine") ':INT
-    ;;                          '((|renderer| (:POINTER SDL-RENDERER)) (|x1| :INT)
-    ;;                            (|y1| :INT) (|x2| :INT) (|y2| :INT)))
+;; (DEFINE-FOREIGN-FUNCTION '(SDL-RENDER-DRAW-LINE "SDL_RenderDrawLine") ':INT
+;;                          '((|renderer| (:POINTER SDL-RENDERER)) (|x1| :INT)
+;;                            (|y1| :INT) (|x2| :INT) (|y2| :INT)))
 ;; int SDL_RenderDrawLine(SDL_Renderer * renderer,  int x1, int y1, int x2, int y2);
 (cffi:defcfun ("SDL_RenderDrawLine" sdl-render-draw-line) :int
   (renderer :pointer)
@@ -1311,9 +1310,9 @@
   (weight :int) ;; enum
   )
 
-    ;; (autowrap:define-foreign-function
-    ;;  '(cairo-set-font-size "cairo_set_font_size") ':void
-    ;;  '((|cr| (:pointer cairo-t)) (|size| :double)))
+;; (autowrap:define-foreign-function
+;;  '(cairo-set-font-size "cairo_set_font_size") ':void
+;;  '((|cr| (:pointer cairo-t)) (|size| :double)))
 (cffi:defcfun ("cairo_set_font_size" cairo-set-font-size) :void
   (cr :pointer)
   (size :double))
@@ -1328,20 +1327,20 @@
 (defparameter +cairo-format-rgb96f+ 6)
 (defparameter +cairo-format-rgba128f+ 7)
 
-    ;; (autowrap:define-foreign-function
-    ;;  '(cairo-image-surface-create "cairo_image_surface_create")
-    ;;  '(:pointer cairo-surface-t)
-    ;;  '((|format| cairo-format-t) (|width| :int) (|height| :int)))
+;; (autowrap:define-foreign-function
+;;  '(cairo-image-surface-create "cairo_image_surface_create")
+;;  '(:pointer cairo-surface-t)
+;;  '((|format| cairo-format-t) (|width| :int) (|height| :int)))
 (cffi:defcfun ("cairo_image_surface_create" cairo-image-surface-create) :pointer
   (format :int) ;; enum
   (width :int)
   (height :int)
   )
 
-    ;; (autowrap:define-foreign-function
-    ;;  '(cairo-set-source-rgb "cairo_set_source_rgb") ':void
-    ;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
-    ;;    (|blue| :double)))
+;; (autowrap:define-foreign-function
+;;  '(cairo-set-source-rgb "cairo_set_source_rgb") ':void
+;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
+;;    (|blue| :double)))
 (cffi:defcfun ("cairo_set_source_rgb" cairo-set-source-rgb) :void
   (cr :pointer)
   (red :double)
@@ -1389,19 +1388,19 @@
 #|
 ;; ----- example in lisp converted , caveat the event loop --- 
 (let ((cr (cairo-create surface)))
-  (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
-  (cairo-set-font-size cr 32.0d0)
-  (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
-  (cairo-move-to cr 10.0d0 50.0d0)
-  (cairo-show-text cr "Hello, world!")
-  ;; <--- event loop code goes here --->
-  (cairo-destroy cr)
-  (cairo-surface-write-to-png surface "hello.png")
-  (cairo-surface-destroy surface))
+(cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+(cairo-set-font-size cr 32.0d0)
+(cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+(cairo-move-to cr 10.0d0 50.0d0)
+(cairo-show-text cr "Hello, world!")
+;; <--- event loop code goes here --->
+(cairo-destroy cr)
+(cairo-surface-write-to-png surface "hello.png")
+(cairo-surface-destroy surface))
 |#
 
-  
-  
+
+
 ;; SDL_Surface * SDL_GetWindowSurface(SDL_Window * window);
 ;; (AUTOWRAP:DEFINE-FOREIGN-FUNCTION
 ;;     '(SDL-GET-WINDOW-SURFACE "SDL_GetWindowSurface") '(:POINTER SDL-SURFACE)
@@ -1502,9 +1501,9 @@
   (pitch :int) ; read only
   (pixels :pointer) ; read-write
   (userdata :pointer) ; read-write
-  (int :locked) ; read only
+  (locked :int) ; read only
   (list-blitmap :pointer) ; private
-  (clip-rect :int 4) ; read only SDL_Rect 4 ints x y w h 
+  (clip-rect (:struct sdl-rect)) ; read only SDL_Rect 4 ints [ x y w h ]
   (sdl-blitmap :pointer) ; private
   (refcount :int) ; read mostly
   )
@@ -1522,6 +1521,43 @@
   (width :int)
   (height :int)
   (stride :int))
+
+(defparameter +cairo-format-rgb24+ 1)
+
+;; (autowrap:define-foreign-function
+;;     '(cairo-surface-flush "cairo_surface_flush") ':void
+;;   '((|surface| (:pointer cairo-surface-t))))
+(cffi:defcfun ("cairo_surface_flush" cairo-surface-flush) :void
+  (surface :pointer))
+
+
+;; cairo rectangle
+;; (autowrap:define-foreign-function '(cairo-rectangle "cairo_rectangle")
+;;                                   ':void
+;;                                   '((|cr| (:pointer cairo-t)) (|x| :double)
+;;                                     (|y| :double) (|width| :double)
+;;                                     (|height| :double)))
+(cffi:defcfun ("cairo_rectangle" cairo-rectangle) :void
+  (cr :pointer)
+  (x :double)
+  (y :double)
+  (width :double)
+  (height :double))
+
+
+;; cairo fill
+;; (autowrap:define-foreign-function '(cairo-fill "cairo_fill") ':void
+;; '((|cr| (:pointer cairo-t))))
+(cffi:defcfun ("cairo_fill" cairo-fill) :void
+  (cr :pointer))
+
+;; cairo stroke
+;; (autowrap:define-foreign-function '(cairo-stroke "cairo_stroke") ':void
+;;                                   '((|cr| (:pointer cairo-t))))
+(cffi:defcfun ("cairo_stroke" cairo-stroke) :void
+  (cr :pointer))
+
+
 
 
 (defun demo ()
@@ -1599,8 +1635,18 @@
     (when (eq (cffi:null-pointer) sdl-surface)
       (error "sdl-create-rgb-surface failed "))
 
-    
+    (setq cairo-surface (cairo-image-surface-create-for-data
+			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels)
+			 +cairo-format-rgb24+
+			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'width)
+			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'height)
+			 (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pitch)))
 
+    ;; is null-pointer null ?
+    (when (eq (cffi:null-pointer) cairo-surface)
+      (error "cairo-image-surface-create-for-data failed "))
+
+    
     
     ;; cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
     ;; sdlsurf->pixels,
@@ -1623,25 +1669,28 @@
     ;; shorthand 
     (setq cr cairo-surface)
     ;;(setq cr (cairo-image-surface-create 
-	      (format t "cr = ~a~%" cr)
-	      
-	      (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
-	      (format t "font face selected ~%")
-	      (cairo-set-font-size cr 32.0d0)
-	      (format t "font size set 32 ~%")    
-	      (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
-	      (format t "cairo rgb set ~%")        
-	      (cairo-move-to cr 10.0d0 50.0d0)
-	      (format t "cairo move to 10 50~%")
-	      (cairo-show-text cr "Hello, world!")
-	      (format t "hello world~%")
+    (format t "cr = ~a~%" cr)
+    
+    (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+    (format t "font face selected ~%")
+    (cairo-set-font-size cr 32.0d0)
+    (format t "font size set 32 ~%")    
+    (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+    (format t "cairo rgb set ~%")        
+    (cairo-move-to cr 10.0d0 50.0d0)
+    (format t "cairo move to 10 50~%")
+    (cairo-show-text cr "Hello, world!")
+    (format t "hello world~%")
 
-	      ;; (loop while t do
-	      ;;   (format t "running ...~%"))
-	      
-	      
-	      (setq texture (sdl-createtexturefromsurface render sdl-surface))
-     (format t "texture = ~a ~%" texture)
+    ;; flush surface
+    (cairo-surface-flush cr)
+    
+    ;; (loop while t do
+    ;;   (format t "running ...~%"))
+    
+    
+    (setq texture (sdl-createtexturefromsurface render sdl-surface))
+    (format t "texture = ~a ~%" texture)
 
     ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
     ;; (format t "texture2 = ~a ~%" texture2)
@@ -1654,23 +1703,23 @@
     #|
     ;; working code to get width and height of a texture - i.e image size width x height
     (cffi:with-foreign-object (ptr '(:struct sdl-rect))
-      (%sdl-query-texture
-       texture 
-       (cffi:null-pointer) ;; NULL
-       (cffi:null-pointer) ;; NULL
-       (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'w)
-       (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'h))       
-      (format t "texture width and height is : w = ~a : h = ~a ~%"
-	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
-	      (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
+    (%sdl-query-texture
+    texture 
+    (cffi:null-pointer) ;; NULL
+    (cffi:null-pointer) ;; NULL
+    (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'w)
+    (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'h))       
+    (format t "texture width and height is : w = ~a : h = ~a ~%"
+    (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
+    (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
 
     |#
     
-    (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUnd ??
+    (sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUnd ??
     (sdl-renderclear render)
     
     ;;(sdl-rendercopy render texture %null-ptr %null-ptr)
-    (sdl-renderpresent render)
+    ;;(sdl-renderpresent render)
 
     ;; https://wiki.libsdl.org/SDL2/SDL_Event
     
@@ -1690,16 +1739,24 @@
 
 	;; ;; redraw screen
 	
-	(sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
+	(sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUND ?
 	(sdl-renderclear render)
 
 	;; draw a line
+
+	;; draw a rectangle
+	;;(cairo_set_source_rgba cr  1 1 1 1.0);
+	(cairo-set-source-rgb cr 1.0d0 1.0d0 1.0d0)
+        (cairo-rectangle cr  0d0  0d0 640d0 480d0);
+	(cairo-fill cr);
+	    
 	
 	(sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
 	(sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
 
 	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
 
+	
 	;;(setq cr (cairo-create surface))
 	;;(setq cr (cairo-create surface))
 	(cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
@@ -1707,8 +1764,12 @@
 	(cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
 	(cairo-move-to cr 10.0d0 50.0d0)
 	(cairo-show-text cr "Hello, world!")
-
+	
+        ;; flush cairo surface
+	(cairo-surface-flush cr)
+	
 	(setq texture (sdl-createtexturefromsurface render sdl-surface))
+
 	
 	;; texture 
 	(sdl-rendercopy render texture %null-ptr %null-ptr)
