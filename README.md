@@ -15,9 +15,11 @@ achieved using a chroot environment and downloading entire distribution just to 
 | [X] | sdl2       |   SDL.h                                 |    libSDL2.so |
 | [X] | sdl2-image |   SDL_image.h                           |    libSDL2_image.so |
 | [X] | sdl2-mixer |   SDL_mixer.h                           |    libSDL2_mixer.so |
-| [ ] | sdl2-ttf   |   SDL_ttf.h                             |    libSDL2_ttf.so |
-| [ ] | sdl2-net   |   SDL_net.h                             |     libSDL2_net.so |
-| [ ] | sdl2-gfx   |   SDL2_gfxPrimitives.h                  |   libSDL2_gfx.so |
+| [X] | sdl2-ttf   |   SDL_ttf.h                             |    libSDL2_ttf.so |
+| [X] | sdl2-net   |   SDL_net.h                             |     libSDL2_net.so |
+| [X] | sdl2-gfx   |   SDL2_gfxPrimitives.h                  |   libSDL2_gfx.so |
+
+
 
 
 
