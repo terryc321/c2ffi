@@ -6,6 +6,9 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:uiop #:cffi)
+  :depends-on (#:uiop
+	       #:cffi
+	       #:trivial-shell)
   :components ((:file "package")
                (:file "cairo-sdl")))
+
