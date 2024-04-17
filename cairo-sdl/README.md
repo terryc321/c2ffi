@@ -7,6 +7,20 @@ mouse up / down , mouse motion , key press up down detection , rectangles , text
 
 need to do a simple c program to see how to do SDL stuff and CAIRO stuff together simplest possible.
 
+## cairo-sdl setup 
+
+this places a symbolic link to actual cairo-sdl in code directory
+
+```bash
+	ln -sv /home/terry/code/c2ffi/cairo-sdl/cairo-sdl.asd /home/terry/quicklisp/local-projects/cairo-sdl.asd 
+```
+
+```lisp
+> rlwrap sbcl
+
+(ql:quickload :cairo-sdl)
+(cairo-sdl::demo)
+```
 
 ## debugging a lisp -> c program is painful
 
