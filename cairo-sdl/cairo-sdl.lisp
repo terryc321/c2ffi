@@ -1660,6 +1660,34 @@
   (width :double))
 
 
+(cffi:defcfun ("cairo_move_to" cairo-move-to) :void
+  (cr :pointer)
+  (x :double)
+  (y :double))
+
+(cffi:defcfun ("cairo_line_to" cairo-line-to) :void
+  (cr :pointer)
+  (x :double)
+  (y :double))
+
+(cffi:defcfun ("cairo_close_path" cairo-close-path) :void
+  (cr :pointer))
+
+(cffi:defcfun ("cairo_stroke_preserve" cairo-stroke-preserve) :void
+  (cr :pointer))
+
+(cffi:defcfun ("cairo_curve_to" cairo-curve-to) :void
+  (cr :pointer)
+  (x :double)
+  (y :double)
+  (x2 :double)
+  (y2 :double)
+  (x3 :double)
+  (y3 :double))
+
+
+  
+
 
 
 (defparameter window nil)
@@ -2172,6 +2200,36 @@
       ;; (sdl-lock-surface cr) ;; huh ??
 
 
+      ;; try get triangle 
+      (cairo-set-source-rgba cr 0.8d0 0.1d0 0.9d0 1.0d0)
+      ;; automatic double float conversion required > asap
+      (cairo-move-to cr 340d0 40d0)
+      (cairo-line-to cr 340d0 160d0)
+      (cairo-line-to cr 450d0 160d0)
+      (cairo-close-path cr)
+      (cairo-stroke-preserve cr)      
+      (cairo-fill cr)
+
+            
+      (cairo-set-source-rgb cr 0.1d0 0.9d0 0.7d0)
+      ;; automatic double float conversion required > asap
+      (cairo-move-to cr 380d0 140d0)
+      (cairo-line-to cr 380d0 260d0)
+      (cairo-line-to cr 450d0 260d0)
+      (cairo-curve-to cr 440d0 255d0 380d0 245d0 380d0 140d0)
+      (cairo-stroke-preserve cr)      
+      (cairo-fill cr)
+     
+      
+      (cairo-set-source-rgba cr 0.2d0 0.5d0 0.2d0 1.0d0)
+      (cairo-rectangle cr
+		       (+ -15.0d0 *mouse-x*)
+		       (+ -15.0d0 *mouse-y*)
+		       30d0
+		       30d0)
+      (cairo-fill cr);
+
+      
       ;;
       (poem cr)
       

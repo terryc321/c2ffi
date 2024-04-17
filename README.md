@@ -1,5 +1,27 @@
 # c2ffi
 
+## Setup 
+
+debian ubuntu packages are woe-fully out of date .
+
+quicklisp common lisp "swank" server is over a year or two old. 
+```lisp
+(ql:quickload :swank) 
+; hose perfectly good swank-2.29.1 version with 2.28 version
+; which then complains when try to 
+
+; unless we change ~/.sbclrc file to read 
+
+(setf asdf:*central-registry*
+       (list* '*default-pathname-defaults*
+              #p"/home/terry/src/slime-2.29.1/"
+              #p"/usr/share/common-lisp/systems/"
+              asdf:*central-registry*))
+
+;;(asdf:oos 'asdf:load-op :swank)
+
+```
+
 ## C2FFI 
 
 built using LLVM 17 from llvm.sh needed a stable version of debian 

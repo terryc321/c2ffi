@@ -7,10 +7,11 @@ int
 main(int argc, char *argv[])
 {
 
-  cairo_t *cr = cairo_image_surface_create(1 , 640 ,480);
+  // cannot build cairo structure because need cairo a structure ??
   
-  printf("cairo result [%s]\n" , cairo_status_to_string(cairo_status(cr));
-  return 0;
+  //cairo_surface *cr = cairo_image_surface_create(1 , 640 ,480);
+  //printf("cairo result [%s]\n" , cairo_status_to_string(cairo_status(cr));
+  //return 0;
 
 
   SDL_Init(SDL_INIT_VIDEO);
@@ -67,10 +68,16 @@ main(int argc, char *argv[])
                                                                        sdl_surface->h,
                                                                        sdl_surface->pitch);
 
+  
+
+  
   cairo_surface_set_device_scale(cr_surface, cairo_x_multiplier, cairo_y_multiplier);
 
   cairo_t *cr = cairo_create(cr_surface);
 
+  printf("cairo created : status %lu \n" , cairo_status(cr));
+
+  
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
 

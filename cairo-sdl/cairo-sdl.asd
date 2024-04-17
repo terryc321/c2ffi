@@ -1,5 +1,6 @@
 ;;;; cairo-sdl.asd
 
+
 ;; compile this file C-c C-k , then (ql:quickload :cairo-sdl)
 
 (asdf:defsystem #:cairo-sdl
@@ -9,10 +10,14 @@
   :version "0.0.1"
   :serial t
   :depends-on (#:uiop
+	       ;;#:swank
 	       #:cffi
 	       #:trivial-shell)
   :components ((:file "package")
                (:file "cairo-sdl")))
+
+
+
 
 
 

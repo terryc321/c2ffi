@@ -5,8 +5,6 @@
 #include "SDL.h"
 
 
-
-
 int main(int argc,char **argv){
   int a;
   printf("size of int is %lu bytes \n" , sizeof(a));

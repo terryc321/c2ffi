@@ -19,7 +19,7 @@ looking at modifier of keypress now - namely ALT left , CTRL left , CTRL right ,
 |#
 
 ;; maximum safety , maximum debugging
-(declaim (optimize (speed 0) (debug 3) (safety 3)))
+;;(declaim (optimize (speed 0) (debug 3) (safety 3)))
 ;;(declaim (optimize (speed 0) (debug 3) (safety 0)))
 ;;(declaim (optimize (speed 3) (debug 0) (safety 3)))
 ;;(declaim (optimize (speed 3) (debug 0) (safety 0)))
@@ -1532,7 +1532,7 @@ looking at modifier of keypress now - namely ALT left , CTRL left , CTRL right ,
 
 
 ;; -------- start demo
-(format t "(demo) to start demo~%")
+(format t "(temp::demo) to start demo~%")
 ;;(demo)
 
 
