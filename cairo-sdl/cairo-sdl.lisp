@@ -15,11 +15,12 @@
   (t (:default "/usr/lib/x86_64-linux-gnu/libSDL2_image"))) ;; drop .so
 (cffi:use-foreign-library lib-sdl2-image)
 
-(cffi:define-foreign-library lib-cairo
-  (t (:default "/usr/lib/x86_64-linux-gnu/libcairo"))) ;; drop .so
+(cffi:define-foreign-library lib-cairo  
+  (t (:default "/usr/lib/x86_64-linux-gnu/libcairo")))
+
 (cffi:use-foreign-library lib-cairo)
 
-
+(cffi:foreign-symbol-pointer "cairo_image_surface_create_for_data")
 
 ;; check SDL_CreateWindow defined
 ;;(foreign-symbol-pointer "SDL_CreateWindow")
@@ -1332,7 +1333,7 @@
 ;;  '(:pointer cairo-surface-t)
 ;;  '((|format| cairo-format-t) (|width| :int) (|height| :int)))
 (cffi:defcfun ("cairo_image_surface_create" cairo-image-surface-create) :pointer
-  (format :int) ;; enum
+  (format :long) ;; enum
   (width :int)
   (height :int)
   )
@@ -1638,475 +1639,633 @@
 	      ))))
 
 
- 
+
+;;cairo_status_t cairo_status (cairo_t *cr);
+(cffi:defcfun ("cairo_status" cairo-status) :ulong
+  (cr :pointer))
+
+
+;; const char *
+;;cairo_status_to_string (cairo_status_t status);
+(cffi:defcfun ("cairo_status_to_string" cairo-status-to-string) :string ;;:pointer ;;:string
+  (status :int))
+
+;; cairo string status
+(defun cairo-ss (cr)
+  (cairo-status-to-string (cairo-status cr)))
+
+
+
+
+(defparameter window nil)
+(defparameter render nil)
+(defparameter sdl-surface nil)
+(defparameter cairo-surface nil)
+(defparameter cr nil)
+(defparameter texture nil)
+
+(defun my-cairo-report (cr s)
+  (cond
+    ((zerop (cairo-status cr)) (format t "~a okay ~%" s))
+    (t (format t "cairo ~a failed.~%" s))))
+
+  
 
 
 (defun demo ()
-  (let ((window nil)
-	(render nil)
-	(sdl-surface nil)
-	(cairo-surface nil)
-	(cr nil)
-	(texture nil)
-	;;(texture2 nil)
-	)
+  ;; (let ((window nil)
+  ;; 	(render nil)
+  ;; 	;;(pic-surface nil)
+  ;; 	(sdl-surface nil)
+  ;; 	(cairo-surface nil)
+  ;; 	(cr nil)
+  ;; 	(texture nil)
+  ;; 	;;(texture2 nil)
+  ;; 	)
 
-    ;;(make-condition 'my-spurious-err)
-    ;;(warning "foo")
-    ;;(break)
-    
-    
-    (sdl-init (logior +sdl-init-video+ +sdl-init-events+))
-    (img-init (logior +img-init-png+))
+  ;;(make-condition 'my-spurious-err)
+  ;;(warning "foo")
+  ;;(break)
+  
+  
+  (sdl-init (logior +sdl-init-video+ +sdl-init-events+))
+  (img-init (logior +img-init-png+))
 
-    ;;centred window - splash screen maybe
-    ;; (setq window (sdl-createwindow "my title"
-    ;; 				   +sdl-windowpos-centered+
-    ;; 				   +sdl-windowpos-centered+				   
-    ;; 				   640
-    ;; 				   480 (logior
-    ;; 					+sdl-window-shown+
-    ;; 					+sdl-window-resizable+)))
-    (setq window (sdl-createwindow "my title"
-				   0
-				   0				   
-				   640
-				   480 (logior
-					;;+sdl-window-fullscreen-desktop+
-					+sdl-window-shown+
-					+sdl-window-allow-highdpi+
-					+sdl-window-resizable+
-					)))
+  ;;centred window - splash screen maybe
+  ;; (setq window (sdl-createwindow "my title"
+  ;; 				   +sdl-windowpos-centered+
+  ;; 				   +sdl-windowpos-centered+				   
+  ;; 				   640
+  ;; 				   480 (logior
+  ;; 					+sdl-window-shown+
+  ;; 					+sdl-window-resizable+)))
+  (setq window (sdl-createwindow "my title"
+				 0
+				 0				   
+				 640
+				 480 (logior
+				      ;;+sdl-window-fullscreen-desktop+
+				      +sdl-window-shown+
+				      +sdl-window-allow-highdpi+
+				      +sdl-window-resizable+
+				      )))
 
-    (setq render (let ((render-flags (logior
-				      +sdl-renderer-accelerated+
-				      +sdl-renderer-targettexture+))
-		       (index -1))
-		   (sdl-createrenderer window index render-flags)))
-    
-    (format t "render = ~a : ~a%" render (sdl-get-error))
+  (setq render (let ((render-flags (logior
+				    ;;+sdl-renderer-software+
+				    ;;+sdl-renderer-presentvsync+
+				    +sdl-renderer-accelerated+
+				    +sdl-renderer-targettexture+
+				    ))
+		     (index -1))
+		 (sdl-createrenderer window index render-flags)))
+  
+  (format t "render = ~a : ~a%" render (sdl-get-error))
 
-    ;; get surface of window 
-    ;;(setq surface (sdl-get-window-surface window))
-    ;;(format t "surface = ~a ~%" surface)
+  ;; get surface of window 
+  ;;(setq surface (sdl-get-window-surface window))
+  ;;(format t "surface = ~a ~%" surface)
 
-    
-    ;;(setq surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman3.jpeg"))
-    ;; possibly probe size of screen perhaps ??
-    ;; SDL_Surface *sdlsurf = SDL_CreateRGBSurface (
-    ;; 						 flags, width, height, 32,
-    ;; 						 0x00FF0000, /* Rmask */
-    ;; 						 0x0000FF00, /* Gmask */
-    ;; 						 0x000000FF, /* Bmask */
-    ;; 						 0); /* Amask */
-    ;; /* ... make sure sdlsurf is locked or doesn't need locking ... */
-    
-    (let ((width 640)
-	  (height 480)
-	  (flags 0) ;; flags always 0 unused
-	  (depth 32)
-	  (red-mask #x00FF0000)
-	  (green-mask #x0000FF00)
-	  (blue-mask #x00000FF)
-	  (alpha-mask 0))
-      (setq sdl-surface (sdl-create-rgb-surface flags
-						width
-						height
-						depth
-						red-mask
-						green-mask
-						blue-mask
-						alpha-mask)))
-    (format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
+  
+  ;;(setq pic-surface (img-load "/home/terry/code/c2ffi/basic-sdl/woman.jpeg"))
+  ;; possibly probe size of screen perhaps ??
+  ;; SDL_Surface *sdlsurf = SDL_CreateRGBSurface (
+  ;; 						 flags, width, height, 32,
+  ;; 						 0x00FF0000, /* Rmask */
+  ;; 						 0x0000FF00, /* Gmask */
+  ;; 						 0x000000FF, /* Bmask */
+  ;; 						 0); /* Amask */
+  ;; /* ... make sure sdlsurf is locked or doesn't need locking ... */
 
-    (format t "sdl-surface locked ? [~a] ~%"
-	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
+  
+  (let ((width 640)
+	(height 480)
+	(flags 0) ;; flags always 0 unused
+	(depth 32) 
+	(red-mask #x00FF0000)
+	(green-mask #x0000FF00)
+	(blue-mask #x00000FF)
+	(alpha-mask 0))
+    (setq sdl-surface (sdl-create-rgb-surface flags
+					      width
+					      height
+					      depth
+					      red-mask
+					      green-mask
+					      blue-mask
+					      alpha-mask)))
+  
+  (format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
 
-    (sdl-lock-surface sdl-surface)
-    
-    (format t "sdl-surface locked ? [~a] ~%"
-	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
-    
-    (when (eq (cffi:null-pointer) sdl-surface)
-      (error "sdl-create-rgb-surface failed "))
-    
-    
-    ;; pitch width height and pixel data
-    (let* ((pitch (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pitch))
-	   (width (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'width))
-	   (height (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'height))
-	   (pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels))
-	   (stride (cairo-format-stride-for-width +cairo-format-rgb24+ width)))
+  ;; (setq cr (cairo-create sdl-surface))
+  ;; (format t "created cairo context cr : err[~a] ~%" (cairo-ss cr))
+  
+  
+  ;;(setq sdl-surface (sdl-get-window-surface window))
+  
 
-      (format t "pitch ~a vs stride ~a ~%" pitch stride)
-      
-      (format t "pixels ~a ~%" pixels)
+  ;; (format t "sdl-surface locked ? [~a] ~%"
+  ;; 	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
 
-      (let ((pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels)))
-	(loop for i from 0 to 100 do
-	  (let ((red (cffi:mem-ref pixels :uchar   (* i 3)))
-		(green (cffi:mem-ref pixels :uchar (+ 1 (* i 3))))
-		(blue (cffi:mem-ref pixels :uchar  (+ 2  (* i 3)))))
-	    (format t "~A ~a ~a : " red green blue))))
-      
-      
-      (setq cairo-surface (cairo-image-surface-create-for-data			   
+  ;;(sdl-unlock-surface sdl-surface)
+  
+  ;; (format t "sdl-surface locked ? [~a] ~%"
+  ;; 	    (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'locked))
+  
+  ;; (when (eq (cffi:null-pointer) sdl-surface)
+  ;;   (error "sdl-create-rgb-surface failed "))
+
+  
+  
+  ;; ;; pitch width height and pixel data
+
+  ;;   (format t "pitch ~a vs stride ~a ~%" pitch stride)
+  
+  ;;   (format t "pixels ~a ~%" pixels)
+
+  ;;   (let ((pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels)))
+  ;; 	(loop for i from 0 to 100 do
+  ;; 	  (let ((red (cffi:mem-ref pixels :uchar   (* i 3)))
+  ;; 		(green (cffi:mem-ref pixels :uchar (+ 1 (* i 3))))
+  ;; 		(blue (cffi:mem-ref pixels :uchar  (+ 2  (* i 3)))))
+  ;; 	    (format t "~A ~a ~a : " red green blue))))
+
+  
+
+  (let* ((pitch (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pitch))
+	 (width (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'width))
+	 (height (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'height))
+	 (pixels (cffi:foreign-slot-value sdl-surface '(:struct sdl-surface-struct) 'pixels))
+	 ;;(stride (cairo-format-stride-for-width +cairo-format-rgb24+ width))
+	 )
+
+    ;; create cairo surface 
+    (setq cairo-surface (cairo-image-surface-create-for-data			   
 			 pixels
 			 +cairo-format-rgb24+
 			 width
 			 height
 			 pitch
 			 ))
-      (format t " data ~a ~%" pixels)
-      (format t "width ~a : height ~a : pitch ~a : ~%" width height pitch )
-      (format t "created cairo-surface : err[~a] ~%" (sdl-get-error)))
     
+    ;; (format t " data ~a ~%" pixels)
+    ;; (format t "width ~a : height ~a : pitch ~a : ~%" width height pitch )
+    ;; (format t "created cairo-surface : sdl err[~a] ~%" (sdl-get-error))      
+    )
+
+  ;; ;; (setq cairo-surface (cairo-image-surface-create
+  ;; ;; 			 +cairo-format-rgb24+
+  ;; ;; 			 ;;+cairo-format-rgb16-565+ ;;
+  ;; ;; 			 ;;+cairo-format-argb32+
+  ;; ;; 			 640
+  ;; ;; 			 480))
+  
+  (setq cr (cairo-create cairo-surface))
+  (cond
+    ((zerop (cairo-status cr)) (format t "cairo cr created okay ~%"))
+    (t (format t "cairo cr failed.~%")))
+  
+  ;; (when (not (zerop (cairo-status cr)))
+  ;;   (format t "cairo-image-surface-create-for-data failed"))
+  ;; (format t "cairo error ~a : ~a ~%" (cairo-status cr) (cairo-ss cr))
+  
+  
+  
+  
+  ;; ;; is null-pointer null ?
+  ;; (when (eq (cffi:null-pointer) cairo-surface)
+  ;;   (error "cairo-image-surface-create-for-data failed "))
+  ;; (format t "cairo surface = ~a ~%" cairo-surface)
+  
+  
+  
+  ;; cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
+  ;; sdlsurf->pixels,
+  ;; CAIRO_FORMAT_RGB24,
+  ;; sdlsurf->w,
+  ;; sdlsurf->h,
+  ;; sdlsurf->pitch);
+
+  
+  ;;(setq surface (img-load "woman.jpeg"))
+  ;; (format t "surface = ~a ~%" surface)
+
+  ;; -- cairo surface 2 ---  ;;; argb32 = 0 ??
+  ;;(setq  (cairo-image-surface-create +cairo-format-argb32+ 240 80))
+  ;;(setq surface (cairo-image-surface-create +cairo-format-argb32+ 640 480))
+  ;;(setq cr (cairo-create surface2))
+  
+  ;;(format t "creating cairo from surface ~%" )
+  
+  ;; ;;(setq cr (cairo-image-surface-create 
+  ;; (format t "cr = ~a~%" cr)
+
+  
+  ;; (format t "set source rgb : err[~a]~%" (sdl-get-error))
+  
+  ;; (when (not (zerop (cairo-status cr)))
+  ;;   (format t "cairo-set-source-rgba failed"))
+
+  ;; should follow mouse
+  (cairo-set-source-rgba cr 0.2d0 0.2d0 0.2d0 1.0d0)
+  (cairo-rectangle cr
+		   (+ *mouse-x* 0.0d0)
+		   (+ *mouse-y* 0.0d0)
+		   (+ *mouse-x* 50.0d0)
+		   (+ *mouse-y* 50.0d0))
+		  ;; 50d0 50d0); half 640 x 480 screen
+  (cairo-fill cr);
+  ;(my-cairo-report cr "cairo-set-source-rgba")
+  ;(my-cairo-report cr "cairo rectangle 0 0 to 320 240")
+  ;(my-cairo-report cr "cairo flll")
+  ;;(cairo-surface-flush cr)
+  ;;(my-cairo-report cr "cairo flush")
+
+  ;;(sleep 5)
+  
+  #|
+  (cairo-set-source-rgba cr 0.5d0 0.3d0 1.0d0 1.0d0)
+  (my-cairo-report cr "cairo-set-source-rgba")
+  (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
+  (my-cairo-report cr "cairo rectangle 0 0 to 320 240")
+  (cairo-fill cr);
+  (my-cairo-report cr "cairo flll")
+  (cairo-surface-flush cr)
+  (my-cairo-report cr "cairo flush")
+  |#
+
+  
+  
+  ;; (format t "cairo rectangle : err[~a]~%" (sdl-get-error))
+  ;; (when (not (zerop (cairo-status cr)))
+  ;;   (format t "cairo-rectangle failed"))
+
+    ;; (format t "cairo fill : err[~a]~%" (sdl-get-error))
+  ;; (when (not (zerop (cairo-status cr)))
+  ;;   (format t "cairo-fill failed "))
+
+  
+  
+  ;; ;; (format t "cairo flush : err[~a]~%" (sdl-get-error))
+
+  
+  ;; ;;(setq texture (sdl-createtexturefromsurface render cr))
+  ;; ;;(setq texture (sdl-createtexturefromsurface render sdl-surface))
+
+  ;; ;;(setq texture2 (sdl-createtexturefromsurface render pic-surface))
+
+  (setq texture (sdl-createtexturefromsurface render sdl-surface))
+  (format t "sdl-texture from surface : err[~a]~%" (sdl-get-error))
+
+  
+  ;;(format t "texture = ~a ~%" texture)
+  ;;(sdl-rendercopy render texture %null-ptr %null-ptr)
+  (sdl-rendercopy render texture %null-ptr %null-ptr)
+  (format t "sdl-rendercopy - texture : err [~a] ~%" (sdl-get-error))
+  
+  ;;(sdl-rendercopy render texture2 %null-ptr %null-ptr)    
+  ;;(format t "sdl-rendercopy - texture 2: err [~a] ~%" (sdl-get-error))
+
+  ;;(noisy cr)
+  
+  (sdl-renderpresent render)
+  (format t "sdl-renderpresent : err [~a] ~%" (sdl-get-error))
+  
+  ;;(sleep 5)
+  
+  
+  ;; (sleep 5)
+  
+  
+  #|
+  (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+  (format t "cairo select font face : err[~a]~%" (sdl-get-error))
+  
+  (cairo-set-font-size cr 32.0d0)
+  (format t "cairo set font size : err[~a]~%" (sdl-get-error))
+  
+  (cairo-set-source-rgb cr 0.2d0 0.2d0 1.0d0)
+  (format t "cairo set rgb : err[~a]~%" (sdl-get-error))
+  
+  (cairo-move-to cr 10.0d0 50.0d0)
+  (format t "cairo move to 10 , 50 : err[~a] ~%" (sdl-get-error))
+  
+  (cairo-show-text cr "Hello, world!")
+  (format t "cairo show text hello : err[~a] ~%" (sdl-get-error))
+
+  (cairo-fill cr);
+  (format t "cairo fill : err[~a] ~%" (sdl-get-error))
+  
+  (cairo-stroke cr);
+  (format t "cairo stroke : err[~a] ~%" (sdl-get-error))
+
+  ;; make some noise
+  (noisy cr)
+  
+  ;; flush surface
+  (cairo-surface-flush cr)
+  (format t "cairo surface flush : err[~a] ~%" (sdl-get-error))
+  |#
+  
+  
+  ;; (loop while t do
+  ;;   (format t "running ...~%"))
+  
+  
+  ;; (setq texture (sdl-createtexturefromsurface render sdl-surface))
+  ;; (format t "texture = ~a ~%" texture)
+  ;; (sdl-rendercopy render texture %null-ptr %null-ptr)
+
+  ;; (sdl-renderpresent render)
+  ;; (format t "sdl renderpresent render : err[~a] ~%" (sdl-get-error))
+  
+  
+  ;;(sleep 3)
+  
+  ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
+  ;; (format t "texture2 = ~a ~%" texture2)
+
+  ;; free surface as not used no more
+  ;;(sdl-freesurface surface)
+  
+  ;;(sdl-freesurface surface2)
+
+  #|
+  ;; working code to get width and height of a texture - i.e image size width x height
+  (cffi:with-foreign-object (ptr '(:struct sdl-rect))
+  (%sdl-query-texture
+  texture 
+  (cffi:null-pointer) ;; NULL
+  (cffi:null-pointer) ;; NULL
+  (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'w)
+  (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'h))       
+  (format t "texture width and height is : w = ~a : h = ~a ~%"
+  (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
+  (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
+
+  |#
+  
+  ;; (sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUnd ??
+  ;; (sdl-renderclear render)
+  
+  ;;(sdl-rendercopy render texture %null-ptr %null-ptr)
+  ;;(sdl-renderpresent render)
+
+  ;; https://wiki.libsdl.org/SDL2/SDL_Event
+  
+  ;; the event loop
+  ;;(loop while (not *close*) do
+
+  
+  ;; assuming char is same as byte 
+  ;; know SDL_Event is 56 bytes ? int is 4 bytes , 56 / 4 => 14
+  ;;(cffi:with-foreign-object (ev-ptr :int 14) t)
+  (setq *close* nil)
+
+  
+  ;; int4 * 64 => 256 bytes , only 56 bytes needed for event
+  (cffi:with-foreign-object (ev-ptr :int 64) 
+    (loop while (not *close*) do
+
+      ;; ;; redraw screen
       
-    
-    
-    ;; is null-pointer null ?
-    (when (eq (cffi:null-pointer) cairo-surface)
-      (error "cairo-image-surface-create-for-data failed "))
-    (format t "cairo surface = ~a ~%" cairo-surface)
-    
-    
-    
-    ;; cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
-    ;; sdlsurf->pixels,
-    ;; CAIRO_FORMAT_RGB24,
-    ;; sdlsurf->w,
-    ;; sdlsurf->h,
-    ;; sdlsurf->pitch);
+      ;; (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
+      ;; (sdl-renderclear render)
+ 
+      ;; draw a line
 
-    
-    ;;(setq surface (img-load "woman.jpeg"))
-    ;; (format t "surface = ~a ~%" surface)
+      
+      ;; ;; draw a rectangle
+      ;; ;;(cairo_set_source_rgba cr  1 1 1 1.0);
+      ;; (cairo-set-source-rgb cr 0.5d0 0.3d0 1.0d0)
+      ;; (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
+      ;; (cairo-fill cr);
+      
+      
+      ;; ;;(setq cr (cairo-create surface))
+      ;; ;;(setq cr (cairo-create surface))
+      ;; (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+      ;; (cairo-set-font-size cr 32.0d0)
+      ;; (cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
+      ;; (cairo-move-to cr 10.0d0 50.0d0)
+      ;; (cairo-show-text cr "Hello, world!")
+      ;; ;;(cairo-fill cr);
+      ;; (cairo-stroke cr)
 
-    ;; -- cairo surface 2 ---  ;;; argb32 = 0 ??
-    ;;(setq  (cairo-image-surface-create +cairo-format-argb32+ 240 80))
-    ;;(setq surface (cairo-image-surface-create +cairo-format-argb32+ 640 480))
-    ;;(setq cr (cairo-create surface2))
-    
-    ;;(format t "creating cairo from surface ~%" )
-    
-    ;; shorthand 
-    (setq cr cairo-surface)
-    ;;(setq cr (cairo-image-surface-create 
-    (format t "cr = ~a~%" cr)
+      ;; ;;; more noise
+      ;; (noisy cr)
+      
+      ;; ;; flush cairo surface
+      ;; (cairo-surface-flush cr)
 
-    (cairo-set-source-rgb cr 0.5d0 0.3d0 1.0d0)
-    (format t "set source rgb : err[~a]~%" (sdl-get-error))
-    
-    (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
-    (format t "cairo rectangle : err[~a]~%" (sdl-get-error))
-    (cairo-fill cr);
-    (format t "cairo fill : err[~a]~%" (sdl-get-error))
-    
-    (cairo-surface-flush cr)
-    (format t "cairo flush : err[~a]~%" (sdl-get-error))
-    
-    
-    (cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
-    (format t "cairo select font face : err[~a]~%" (sdl-get-error))
-    
-    (cairo-set-font-size cr 32.0d0)
-    (format t "cairo set font size : err[~a]~%" (sdl-get-error))
-        
-    (cairo-set-source-rgb cr 0.2d0 0.2d0 1.0d0)
-    (format t "cairo set rgb : err[~a]~%" (sdl-get-error))
-    
-    (cairo-move-to cr 10.0d0 50.0d0)
-    (format t "cairo move to 10 , 50 : err[~a] ~%" (sdl-get-error))
-    
-    (cairo-show-text cr "Hello, world!")
-    (format t "cairo show text hello : err[~a] ~%" (sdl-get-error))
+      ;;(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
+      ;;(sdl-renderclear render)
 
-    (cairo-fill cr);
-    (format t "cairo fill : err[~a] ~%" (sdl-get-error))
-        
-    (cairo-stroke cr);
-    (format t "cairo stroke : err[~a] ~%" (sdl-get-error))
+      
+      ;; some cairo stuff
+      (cairo-set-source-rgba cr 1.0d0 0.0d0 0.0d0 1.0d0)
+      (my-cairo-report cr "cairo-set-source-rgba")
+      (cairo-rectangle cr  50d0  50d0 30d0 30d0); half 640 x 480 screen
+      (my-cairo-report cr "cairo rectangle 0 0 to 320 240")
+      (cairo-fill cr);
+      (my-cairo-report cr "cairo flll")
 
-    ;; make some noise
-    (noisy cr)
-    
-    ;; flush surface
-    (cairo-surface-flush cr)
-    (format t "cairo surface flush : err[~a] ~%" (sdl-get-error))
+      ;; blue 
+      (cairo-set-source-rgba cr 0.0d0 0.0d0 1.0d0 1.0d0)
+      (cairo-rectangle cr
+		       (+ -15.0d0 *mouse-x*)
+		       (+ -15.0d0 *mouse-y*)
+		       30d0
+		       30d0)
+      (cairo-fill cr);
 
-    
-    ;; (loop while t do
-    ;;   (format t "running ...~%"))
-    
-    
-    ;; (setq texture (sdl-createtexturefromsurface render sdl-surface))
-    ;; (format t "texture = ~a ~%" texture)
-    ;; (sdl-rendercopy render texture %null-ptr %null-ptr)
+      ;;(cairo-surface-flush cairo-surface)
+      ;;(my-cairo-report cr "cairo flush to cairo surface -> ")
 
-    (sdl-renderpresent render)
-    (format t "sdl renderpresent render : err[~a] ~%" (sdl-get-error))
-    
-    
-    ;;(sleep 3)
-    
-    ;; (setq texture2 (sdl-createtexturefromsurface render surface2))
-    ;; (format t "texture2 = ~a ~%" texture2)
+      ;;(cairo-surface-flush cr)
+      ;;(my-cairo-report cr "cairo flush")
+  
+      
+      (sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
+      (sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
+      
+      
+      (setq texture (sdl-createtexturefromsurface render sdl-surface))
+      ;;(setq texture (sdl-createtexturefromsurface render cr))
+      
+      ;; texture 
+      
+      ;; texture2 --- will that not just write over it ?
+      (sdl-rendercopy render texture %null-ptr %null-ptr)
+      
+      ;; show line
+      (sdl-renderpresent render)
 
-    ;; free surface as not used no more
-    ;;(sdl-freesurface surface)
-    
-    ;;(sdl-freesurface surface2)
+      ;; ?? 
+      ;;(sdl-destroy-texture texture)
+      
+      ;; process events ...
+      (catch 'poll-events
+	(loop while t do
+	  (let ((poll (sdl-pollevent ev-ptr)))
+	    (cond
+	      ((zerop poll) ;; when no more events to poll 
+	       (throw 'poll-events t))
+	      (t
+	       ;; switch event type 
+	       (let ((ev-type (cffi:mem-aref ev-ptr :int 0)))
+		 (format t "event type ~a ~%" ev-type)
+		 (cond
+		   ;; exit fast by throwing 
+		   ((= ev-type +sdl-quit+)
+		    (format t "quitting !~%")
+		    ;;(setq has-poll-event nil)
+		    (setq *close* t)
+		    (throw 'poll-events t))
 
-    #|
-    ;; working code to get width and height of a texture - i.e image size width x height
-    (cffi:with-foreign-object (ptr '(:struct sdl-rect))
-    (%sdl-query-texture
-    texture 
-    (cffi:null-pointer) ;; NULL
-    (cffi:null-pointer) ;; NULL
-    (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'w)
-    (cffi:foreign-slot-pointer ptr '(:struct sdl-rect) 'h))       
-    (format t "texture width and height is : w = ~a : h = ~a ~%"
-    (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'w)
-    (cffi:foreign-slot-value ptr '(:struct sdl-rect) 'h)))
+		   
+		   ((= ev-type +sdl-mousemotion+)
+		    ;;(format t "mouse moving !~%")
+		    
+		    ;; read off respective indices manually from ev-ptr
+		    (let ((x (cffi:mem-aref ev-ptr :int 5))
+			  (y (cffi:mem-aref ev-ptr :int 6)))
+		      (format t "mouse motion v1.0 : mouse at position ~a ~a ~%" x y)
+		      (setq *mouse-x* x)
+		      (setq *mouse-y* y)
+		      )
 
-    |#
-    
-    ;; (sdl-set-render-draw-color render 0 0 0 0) ;; RED BACKGROUnd ??
-    ;; (sdl-renderclear render)
-    
-    ;;(sdl-rendercopy render texture %null-ptr %null-ptr)
-    ;;(sdl-renderpresent render)
-
-    ;; https://wiki.libsdl.org/SDL2/SDL_Event
-    
-    ;; the event loop
-    ;;(loop while (not *close*) do
-
-    
-    ;; assuming char is same as byte 
-    ;; know SDL_Event is 56 bytes ? int is 4 bytes , 56 / 4 => 14
-    ;;(cffi:with-foreign-object (ev-ptr :int 14) t)
-    (setq *close* nil)
-
-    
-    ;; int4 * 64 => 256 bytes , only 56 bytes needed for event
-    (cffi:with-foreign-object (ev-ptr :int 64) 
-      (loop while (not *close*) do
-
-	;; ;; redraw screen
-	
-	;; (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
-	;; (sdl-renderclear render)
-
-	;; draw a line
-
-	
-	;; draw a rectangle
-	;;(cairo_set_source_rgba cr  1 1 1 1.0);
-	(cairo-set-source-rgb cr 0.5d0 0.3d0 1.0d0)
-        (cairo-rectangle cr  0d0  0d0 320d0 240d0); half 640 x 480 screen
-	(cairo-fill cr);
-	
-	
-	;;(setq cr (cairo-create surface))
-	;;(setq cr (cairo-create surface))
-	(cairo-select-font-face cr "serif" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
-	(cairo-set-font-size cr 32.0d0)
-	(cairo-set-source-rgb cr 0.0d0 0.0d0 1.0d0)
-	(cairo-move-to cr 10.0d0 50.0d0)
-	(cairo-show-text cr "Hello, world!")
-	;;(cairo-fill cr);
-	(cairo-stroke cr)
-
-	;;; more noise
-	(noisy cr)
-	
-        ;; flush cairo surface
-	(cairo-surface-flush cr)
-
-	(sdl-set-render-draw-color render 0 0 255 0) ;; Lets have a blue color
-	(sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
-	(sdl-set-render-draw-color render 0 255 0 0) ;; Green drawing color ?
-
-	
-	
-	(setq texture (sdl-createtexturefromsurface render sdl-surface))
-	;;(setq texture (sdl-createtexturefromsurface render cr))
-	
-	;; texture 
-	
-	;; texture2 --- will that not just write over it ?
-	(sdl-rendercopy render texture %null-ptr %null-ptr)
-	
-	;; show line
-	(sdl-renderpresent render)
-
-	;; ?? 
-        ;;(sdl-destroy-texture texture)
-	
-	;; process events ...
-	(catch 'poll-events
-	  (loop while t do
-	    (let ((poll (sdl-pollevent ev-ptr)))
-	      (cond
-		((zerop poll) ;; when no more events to poll 
-		 (throw 'poll-events t))
-		(t
-		 ;; switch event type 
-		 (let ((ev-type (cffi:mem-aref ev-ptr :int 0)))
-		   (format t "event type ~a ~%" ev-type)
-		   (cond
-		      ;; exit fast by throwing 
-		     ((= ev-type +sdl-quit+)
-		      (format t "quitting !~%")
-		      ;;(setq has-poll-event nil)
-		      (setq *close* t)
-		      (throw 'poll-events t))
-
-		     
-		     ((= ev-type +sdl-mousemotion+)
-		      ;;(format t "mouse moving !~%")
+		    ;; can use structure definition and read it off that
+		    (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'type))
+			  (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'timestamp))
+			  (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'window-id))
+			  (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'which))
+			  (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'state))
+			  (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'x))
+			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'y))
+			  (xrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'xrel))
+			  (yrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'yrel)))
 		      
-		      ;; read off respective indices manually from ev-ptr
-		      (let ((x (cffi:mem-aref ev-ptr :int 5))
-			    (y (cffi:mem-aref ev-ptr :int 6)))
-			(format t "mouse motion v1.0 : mouse at position ~a ~a ~%" x y)
-			(setq *mouse-x* x)
-			(setq *mouse-y* y)
-			)
-
-		      ;; can use structure definition and read it off that
-		      (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'type))
-			    (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'timestamp))
-			    (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'window-id))
-			    (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'which))
-			    (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'state))
-			    (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'x))
-			    (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'y))
-			    (xrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'xrel))
-			    (yrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'yrel)))
-			
-			(format t "mouse v2.0 [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-				type timestamp window-id which state x y xrel yrel))
+		      (format t "mouse v2.0 [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+			      type timestamp window-id which state x y xrel yrel))
+		    
+		    );; --- mouse motion ----
+		   
+		   ((= ev-type +sdl-mousebuttondown+)
+		    ;; (format t "mouse down !~%")		      
+		    (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'type))
+			  (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'timestamp))
+			  (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'window-id))
+			  (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'which))
+			  (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'state))
+			  (button (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'button))
+			  (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'x))
+			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
+			  (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
+			  )
 		      
-		      );; --- mouse motion ----
+		      (format t "mdown [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+			      type timestamp window-id which state
+			      (cond ((= button 1) "left")
+				    ((= button 2) "middle")
+				    ((= button 3) "right")
+				    (t "none"))
+			      x y clicks)
 		      
-		     ((= ev-type +sdl-mousebuttondown+)
-		      ;; (format t "mouse down !~%")		      
-		      (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'type))
-			    (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'timestamp))
-			    (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'window-id))
-			    (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'which))
-			    (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'state))
-			    (button (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'button))
-			    (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'x))
-			    (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
-			    (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
-			    )
-			
-			(format t "mdown [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-				type timestamp window-id which state
-				(cond ((= button 1) "left")
-				      ((= button 2) "middle")
-				      ((= button 3) "right")
-				      (t "none"))
-				x y clicks)
-			
-			)) ;; --- mouse down ---
+		      )) ;; --- mouse down ---
 
-		     
-		     ((= ev-type +sdl-mousebuttonup+)
-		      ;;(format t "mouse up !~%")		      
-		      (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'type))
-			    (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'timestamp))
-			    (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'window-id))
-			    (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'which))
-			    (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'state))
-			    (button (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'button))
-			    (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'x))
-			    (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
-			    (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
-			    )
-			
-			(format t "mup [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-				type timestamp window-id which state
-				(cond ((= button 1) 'left)
-				      ((= button 2) 'middle)
-				      ((= button 3) 'right)
-				      (t 'none))
-				x y clicks)
+		   
+		   ((= ev-type +sdl-mousebuttonup+)
+		    ;;(format t "mouse up !~%")		      
+		    (let ((type (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'type))
+			  (timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'timestamp))
+			  (window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'window-id))
+			  (which (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'which))
+			  (state (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'state))
+			  (button (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'button))
+			  (x (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'x))
+			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
+			  (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
+			  )
+		      
+		      (format t "mup [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+			      type timestamp window-id which state
+			      (cond ((= button 1) 'left)
+				    ((= button 2) 'middle)
+				    ((= button 3) 'right)
+				    (t 'none))
+			      x y clicks)
 
 		      )) ;; --- mouse up ---
 
-		     ((= ev-type +sdl-keyup+)
+		   ((= ev-type +sdl-keyup+)
+		    
+		    ;; possible got whole thing topsy-turvey
+		    (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
+			  ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
+			  ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
+			  ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
+			  ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
+			  (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
+			  ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
+			  (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))
 		      
-		      ;; possible got whole thing topsy-turvey
-		      (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
-			    ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
-			    ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
-			    ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
-			    ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
-			    (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
-			    ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
-			    (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))
-			
-			(format t "key up : scancode ~a => ~a : modifier ~a => ~a ~%"
-				scancode
-				(decode-keyboard-scancode scancode)
-				modifier
-				(decode-keyboard-modifier modifier)
-				)
+		      (format t "key up : scancode ~a => ~a : modifier ~a => ~a ~%"
+			      scancode
+			      (decode-keyboard-scancode scancode)
+			      modifier
+			      (decode-keyboard-modifier modifier)
+			      )
 
-			;; if lift key up - do something ... land mine keys ?? 
-			
+		      ;; if lift key up - do something ... land mine keys ?? 
+		      
 
 		      )) ;; ---- key up ------
-		     
-		     ((= ev-type +sdl-keydown+)
+		   
+		   ((= ev-type +sdl-keydown+)
 
-		      ;; possible got whole thing topsy-turvey
-		      (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
-			    ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
-			    ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
-			    ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
-			    ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
-			    (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
-			    ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
-			    (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))			    
-			(format t "key down : scancode ~a => ~a : modifier ~a => ~a~%"
-				scancode
-				(decode-keyboard-scancode scancode)
-				modifier
-				(decode-keyboard-modifier modifier)
-				)
+		    ;; possible got whole thing topsy-turvey
+		    (let (;;(type (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'type))
+			  ;;(timestamp (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'timestamp))
+			  ;;(window-id (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'window-id))
+			  ;;(state (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'state))
+			  ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
+			  (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
+			  ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
+			  (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))			    
+		      (format t "key down : scancode ~a => ~a : modifier ~a => ~a~%"
+			      scancode
+			      (decode-keyboard-scancode scancode)
+			      modifier
+			      (decode-keyboard-modifier modifier)
+			      )
 
-			;; alt keys do not seem to be detected correctly on cherry keyboard ...
-			
-		       ;; if press escape key
+		      ;; alt keys do not seem to be detected correctly on cherry keyboard ...
+		      
+		      ;; if press escape key
 		      (when (= scancode +sdl-scancode-escape+)
 			(setq *close* t)
 			(throw 'poll-events t))
 		      
 		      )) ;; --- keydown ---
-		     
-		     )))))))))
-	    
-    ;; roughly 1 60th of a second
-    ;; (sdl-delay (floor (/ 1000 60)))
-    ;;(sleep 3)
-    
-    ;;(sdl-destroytexture texture)
-    (sdl-destroyrenderer render)
-    (sdl-destroywindow window)
+		   
+		   )))))))))
+  
+  ;; roughly 1 60th of a second
+  ;; (sdl-delay (floor (/ 1000 60)))
+  ;;(sleep 3)
+  
+  ;;(sdl-destroytexture texture)
+  (sdl-destroyrenderer render)
+  (sdl-destroywindow window)
 
-    (img-quit)
-    (sdl-quit)
-    ))
+  (img-quit)
+  (sdl-quit)
+  )
 
 
 ;; -------- start demo
 (format t "(cairo-sdl::demo) to start demo~%")
+
 ;;(demo)
 
 
