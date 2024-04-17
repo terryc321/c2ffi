@@ -1480,6 +1480,7 @@
 ;;                                   (:REFCOUNT :INT :BIT-SIZE 32 :BIT-OFFSET
 ;;                                    704 :BIT-ALIGNMENT 32)))
 
+
 ;; typedef struct SDL_Surface
 ;; {
 ;;     Uint32 flags;               /**< Read-only */
@@ -1673,8 +1674,53 @@
     ((zerop (cairo-status cr)) (format t "~a okay ~%" s))
     (t (format t "cairo ~a failed.~%" s))))
 
-  
 
+
+
+;; poem 
+  ;; cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
+
+  ;; cairo_select_font_face(cr, "Purisa",
+  ;;     CAIRO_FONT_SLANT_NORMAL,
+  ;;     CAIRO_FONT_WEIGHT_BOLD);
+
+  ;; cairo_set_font_size(cr, 13);
+
+  ;; cairo_move_to(cr, 20, 30);
+  ;; cairo_show_text(cr, "Most relationships seem so transitory");
+  ;; cairo_move_to(cr, 20, 60);
+  ;; cairo_show_text(cr, "They're all good but not the permanent one");
+
+  ;; cairo_move_to(cr, 20, 120);
+  ;; cairo_show_text(cr, "Who doesn't long for someone to hold");
+
+  ;; cairo_move_to(cr, 20, 150);
+  ;; cairo_show_text(cr, "Who knows how to love you without being told");
+  ;; cairo_move_to(cr, 20, 180);
+  ;; cairo_show_text(cr, "Somebody tell me why I'm on my own");
+  ;; cairo_move_to(cr, 20, 210);
+  ;; cairo_show_text(cr, "If there's a soulmate for everyone");
+
+(defun poem (cr)
+  (cairo-set-source-rgb cr 0.8d0 0.8d0 0.8d0)
+  (cairo-select-font-face cr "Purisa" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
+  (cairo-set-font-size cr 13.0d0)
+  (cairo-move-to cr 20d0 30d0)
+  (cairo-show-text cr "Most relationships seem so transitory")
+  (cairo-move-to cr 20d0 60d0)
+  (cairo-show-text cr "Who doesn't long for someone to hold")
+  (cairo-move-to cr 20d0 120d0)
+  (cairo-show-text cr "Who knows how to love you without being told")
+  (cairo-move-to cr 20d0 150d0)
+  (cairo-show-text cr "Somebody tell me why I'm on my own")
+  (cairo-move-to cr 20d0 180d0)
+  (cairo-show-text cr "If there's a soulmate for everyone")
+  )
+
+
+  
+  
+  
 
 (defun demo ()
   ;; (let ((window nil)
@@ -1710,7 +1756,7 @@
 				 480 (logior
 				      ;;+sdl-window-fullscreen-desktop+
 				      +sdl-window-shown+
-				      +sdl-window-borderless+
+				      ;;+sdl-window-borderless+
 				      +sdl-window-allow-highdpi+
 				      ;;+sdl-window-fullscreen+
 				      +sdl-window-resizable+
@@ -1725,7 +1771,7 @@
 		     (index -1))
 		 (sdl-createrenderer window index render-flags)))
   
-  (format t "render = ~a : ~a%" render (sdl-get-error))
+  ;;(format t "render = ~a : ~a%" render (sdl-get-error))
 
   ;; get surface of window 
   ;;(setq surface (sdl-get-window-surface window))
@@ -1760,7 +1806,8 @@
 					      blue-mask
 					      alpha-mask)))
   
-  (format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
+  ;(format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
+
 
   ;; (setq cr (cairo-create sdl-surface))
   ;; (format t "created cairo context cr : err[~a] ~%" (cairo-ss cr))
@@ -1781,6 +1828,7 @@
   ;;   (error "sdl-create-rgb-surface failed "))
 
   
+
   
   ;; ;; pitch width height and pixel data
 
@@ -1826,9 +1874,9 @@
   ;; ;; 			 480))
   
   (setq cr (cairo-create cairo-surface))
-  (cond
-    ((zerop (cairo-status cr)) (format t "cairo cr created okay ~%"))
-    (t (format t "cairo cr failed.~%")))
+  ;; (cond
+  ;;   ((zerop (cairo-status cr)) (format t "cairo cr created okay ~%"))
+  ;;   (t (format t "cairo cr failed.~%")))
   
   ;; (when (not (zerop (cairo-status cr)))
   ;;   (format t "cairo-image-surface-create-for-data failed"))
@@ -1967,6 +2015,7 @@
 
   (cairo-fill cr);
   (format t "cairo fill : err[~a] ~%" (sdl-get-error))
+
   
   (cairo-stroke cr);
   (format t "cairo stroke : err[~a] ~%" (sdl-get-error))
@@ -2094,11 +2143,11 @@
       
       ;; some cairo stuff
       (cairo-set-source-rgba cr 1.0d0 0.0d0 0.0d0 1.0d0)
-      (my-cairo-report cr "cairo-set-source-rgba")
+      ;;(my-cairo-report cr "cairo-set-source-rgba")
       (cairo-rectangle cr  50d0  50d0 30d0 30d0); half 640 x 480 screen
-      (my-cairo-report cr "cairo rectangle 0 0 to 320 240")
+      ;;(my-cairo-report cr "cairo rectangle 0 0 to 320 240")
       (cairo-fill cr);
-      (my-cairo-report cr "cairo flll")
+      ;;(my-cairo-report cr "cairo flll")
 
       
 
@@ -2123,17 +2172,23 @@
       ;; (sdl-lock-surface cr) ;; huh ??
 
 
+      ;;
+      (poem cr)
+      
 
 
       ;; 
       
-      (setq texture (sdl-createtexturefromsurface render sdl-surface))
       ;;(setq texture (sdl-createtexturefromsurface render cr))
+      (setq texture (sdl-createtexturefromsurface render sdl-surface))
       
       ;; texture 
       
       ;; texture2 --- will that not just write over it ?
       (sdl-rendercopy render texture %null-ptr %null-ptr)
+
+      ;; free the texture
+      (sdl-destroy-texture texture)
       
       ;; show line
       (sdl-renderpresent render)
@@ -2151,11 +2206,11 @@
 	      (t
 	       ;; switch event type 
 	       (let ((ev-type (cffi:mem-aref ev-ptr :int 0)))
-		 (format t "event type ~a ~%" ev-type)
+		 ;;(format t "event type ~a ~%" ev-type)
 		 (cond
 		   ;; exit fast by throwing 
 		   ((= ev-type +sdl-quit+)
-		    (format t "quitting !~%")
+		    ;;(format t "quitting !~%")
 		    ;;(setq has-poll-event nil)
 		    (setq *close* t)
 		    (throw 'poll-events t))
@@ -2167,7 +2222,7 @@
 		    ;; read off respective indices manually from ev-ptr
 		    (let ((x (cffi:mem-aref ev-ptr :int 5))
 			  (y (cffi:mem-aref ev-ptr :int 6)))
-		      (format t "mouse motion v1.0 : mouse at position ~a ~a ~%" x y)
+		      ;;(format t "mouse motion v1.0 : mouse at position ~a ~a ~%" x y)
 		      (setq *mouse-x* x)
 		      (setq *mouse-y* y)
 		      )
@@ -2182,9 +2237,11 @@
 			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'y))
 			  (xrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'xrel))
 			  (yrel (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-motion-event) 'yrel)))
+		      t
+		      ;; (format t "mouse v2.0 [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+		      ;; 	      type timestamp window-id which state x y xrel yrel)
 		      
-		      (format t "mouse v2.0 [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-			      type timestamp window-id which state x y xrel yrel))
+		      )
 		    
 		    );; --- mouse motion ----
 		   
@@ -2200,14 +2257,16 @@
 			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
 			  (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
 			  )
+
+		      t
 		      
-		      (format t "mdown [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-			      type timestamp window-id which state
-			      (cond ((= button 1) "left")
-				    ((= button 2) "middle")
-				    ((= button 3) "right")
-				    (t "none"))
-			      x y clicks)
+		      ;; (format t "mdown [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+		      ;; 	      type timestamp window-id which state
+		      ;; 	      (cond ((= button 1) "left")
+		      ;; 		    ((= button 2) "middle")
+		      ;; 		    ((= button 3) "right")
+		      ;; 		    (t "none"))
+		      ;; 	      x y clicks)
 		      
 		      )) ;; --- mouse down ---
 
@@ -2224,14 +2283,15 @@
 			  (y (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'y))
 			  (clicks (cffi:foreign-slot-value ev-ptr '(:struct sdl-mouse-button-event) 'clicks))
 			  )
-		      
-		      (format t "mup [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
-			      type timestamp window-id which state
-			      (cond ((= button 1) 'left)
-				    ((= button 2) 'middle)
-				    ((= button 3) 'right)
-				    (t 'none))
-			      x y clicks)
+
+		      t
+		      ;; (format t "mup [~a,~a,~a,~a,~a] : pos [~a,~a,~a,~a]~%"
+		      ;; 	      type timestamp window-id which state
+		      ;; 	      (cond ((= button 1) 'left)
+		      ;; 		    ((= button 2) 'middle)
+		      ;; 		    ((= button 3) 'right)
+		      ;; 		    (t 'none))
+		      ;; 	      x y clicks)
 
 		      )) ;; --- mouse up ---
 
@@ -2246,13 +2306,14 @@
 			  (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
 			  ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
 			  (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))
-		      
-		      (format t "key up : scancode ~a => ~a : modifier ~a => ~a ~%"
-			      scancode
-			      (decode-keyboard-scancode scancode)
-			      modifier
-			      (decode-keyboard-modifier modifier)
-			      )
+
+		      t
+		      ;; (format t "key up : scancode ~a => ~a : modifier ~a => ~a ~%"
+		      ;; 	      scancode
+		      ;; 	      (decode-keyboard-scancode scancode)
+		      ;; 	      modifier
+		      ;; 	      (decode-keyboard-modifier modifier)
+		      ;; 	      )
 
 		      ;; if lift key up - do something ... land mine keys ?? 
 		      
@@ -2269,13 +2330,15 @@
 			  ;;(repeat (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'repeat))
 			  (scancode (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'scancode))
 			  ;;(sym (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'sym))
-			  (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))			    
-		      (format t "key down : scancode ~a => ~a : modifier ~a => ~a~%"
-			      scancode
-			      (decode-keyboard-scancode scancode)
-			      modifier
-			      (decode-keyboard-modifier modifier)
-			      )
+			  (modifier (cffi:foreign-slot-value ev-ptr '(:struct sdl-keyboard-event) 'modifier)))
+
+		      t
+		      ;; (format t "key down : scancode ~a => ~a : modifier ~a => ~a~%"
+		      ;; 	      scancode
+		      ;; 	      (decode-keyboard-scancode scancode)
+		      ;; 	      modifier
+		      ;; 	      (decode-keyboard-modifier modifier)
+		      ;; 	      )
 
 		      ;; alt keys do not seem to be detected correctly on cherry keyboard ...
 		      

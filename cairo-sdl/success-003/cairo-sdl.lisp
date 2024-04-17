@@ -1808,6 +1808,7 @@
   
   ;(format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
 
+
   ;; (setq cr (cairo-create sdl-surface))
   ;; (format t "created cairo context cr : err[~a] ~%" (cairo-ss cr))
   
@@ -1827,6 +1828,7 @@
   ;;   (error "sdl-create-rgb-surface failed "))
 
   
+
   
   ;; ;; pitch width height and pixel data
 
@@ -2177,13 +2179,16 @@
 
       ;; 
       
-      (setq texture (sdl-createtexturefromsurface render sdl-surface))
       ;;(setq texture (sdl-createtexturefromsurface render cr))
+      (setq texture (sdl-createtexturefromsurface render sdl-surface))
       
       ;; texture 
       
       ;; texture2 --- will that not just write over it ?
       (sdl-rendercopy render texture %null-ptr %null-ptr)
+
+      ;; free the texture
+      (sdl-destroy-texture texture)
       
       ;; show line
       (sdl-renderpresent render)
