@@ -14,6 +14,9 @@ C-x o other screen
 M-x welcome 
 
 each buffer is clipped it appears 
+![image 1](./lem/welcome-game/Screenshot_2024-04-18_07-33-26.png)
+
+![image 2](./lem/welcome-game/Screenshot_2024-04-18_07-33-26.png)
 
 
 ## Setup 
