@@ -1,5 +1,21 @@
 # c2ffi
 
+
+## LEM lem text editor in common lisp
+
+wrote a little package in lem that mirrors tetris example in source tree
+
+use arrow keys to move a square on screen
+
+M-x start-lisp-repl
+(load "welcome.lisp")
+C-x 2 split screen vertically
+C-x o other screen
+M-x welcome 
+
+each buffer is clipped it appears 
+
+
 ## Setup 
 
 debian ubuntu packages are woe-fully out of date .
