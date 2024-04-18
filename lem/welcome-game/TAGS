@@ -1,0 +1,519 @@
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/drawing.lisp,1661
+(defpackage :lem-sdl2/drawing1,0
+(defgeneric get-surface 8,195
+(defmethod get-surface 10,246
+(defun make-text-surface 15,429
+(defun make-text-surface-with-cache 29,1014
+(defmethod get-surface 35,1352
+(defmethod get-surface 41,1644
+(defmethod get-surface 57,2479
+(defgeneric object-width 62,2648
+(defmethod object-width 64,2700
+(defmethod object-width 67,2769
+(defmethod object-width 70,2894
+(defmethod object-width 73,3017
+(defmethod object-width 76,3142
+(defmethod object-width 79,3254
+(defmethod object-width 82,3410
+(defmethod object-width 85,3485
+(defmethod object-width 88,3563
+(defmethod object-width 91,3692
+(defgeneric object-height 96,3865
+(defmethod object-height 98,3918
+(defmethod object-height 101,4024
+(defmethod object-height 104,4151
+(defmethod object-height 107,4257
+(defmethod object-height 110,4376
+(defmethod object-height 113,4484
+(defmethod object-height 116,4591
+(defmethod object-height 119,4703
+(defmethod object-height 122,4818
+(defmethod object-height 125,4928
+(defmethod lem-if:object-width 129,5103
+(defmethod lem-if:object-height 133,5266
+(defmethod draw-object 137,5431
+(defmethod draw-object 140,5515
+(defmethod draw-object 175,7408
+(defmethod draw-object 186,7992
+(defmethod draw-object 195,8525
+(defmethod draw-object 204,8883
+(defun redraw-physical-line 219,9652
+(defun redraw-physical-line-from-behind 224,9864
+(defun fill-to-end-of-line 231,10227
+(defmethod lem-if:render-line 237,10600
+(defmethod lem-if:render-line-on-modeline 242,10838
+(defmethod lem-if:clear-to-end-of-window 264,11862
+(defmethod lem-core:redraw-buffer 274,12373
+(defmethod lem-core:redraw-buffer 279,12647
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/display.lisp,1459
+(defpackage :lem-sdl2/display1,0
+(defun current-display 45,1321
+(defun (setf 48,1361
+(defun call-with-display 51,1430
+(defmacro with-display 54,1499
+(defclass display 57,1597
+(defmethod display-latin-font 87,2731
+(defmethod display-latin-bold-font 90,2838
+(defmethod display-cjk-normal-font 93,2948
+(defmethod display-cjk-bold-font 96,3058
+(defmethod display-emoji-font 99,3164
+(defmethod display-braille-font 102,3264
+(defmethod display-background-color 105,3368
+(defun call-with-renderer 109,3540
+(defmacro with-renderer 114,3699
+(defun call-with-display-render-target 117,3800
+(defmacro with-display-render-target 123,4117
+(defmethod clear 126,4261
+(defmethod get-display-font 131,4501
+(defmethod scaled-char-width 153,5330
+(defmethod scaled-char-height 157,5498
+(defmethod update-display 161,5669
+(defmethod display-width 164,5768
+(defmethod display-height 167,5890
+(defmethod display-window-width 170,6013
+(defmethod display-window-height 173,6131
+(defmethod update-texture 176,6250
+(defmethod set-render-color 184,6609
+(defun adapt-high-dpi-display-scale 192,6939
+(defun adapt-high-dpi-font-size 202,7437
+(defmethod notify-required-redisplay 211,7825
+(defmethod render-fill-rect 224,8381
+(defmethod render-line 233,8818
+(defmethod render-fill-rect-by-pixels 237,8976
+(defmethod render-border 242,9207
+(defmethod render-margin-line 266,10701
+(defmethod change-font 283,11537
+(defmethod create-view-texture 297,12263
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/graphics.lisp,802
+(defpackage :lem-sdl2/graphics1,0
+(defclass drawable 17,375
+(defun buffer-drawables 25,622
+(defun (setf 28,696
+(defun window-drawables 31,804
+(defun (setf 34,882
+(defmethod drawables 37,994
+(defmethod drawables 40,1067
+(defmethod (setf 43,1140
+(defmethod (setf 46,1247
+(defmethod add-drawable 49,1354
+(defmethod add-drawable 53,1499
+(defun delete-drawable 57,1644
+(defun clear-drawables 61,1781
+(defmethod lem-sdl2:render 65,1872
+(defun call-with-drawable 71,2117
+(defmacro with-drawable 79,2367
+(defun draw-line 82,2466
+(defun draw-rectangle 91,2795
+(defun draw-point 99,3165
+(defun convert-to-points 104,3372
+(defun draw-points 118,3894
+(defun draw-string 127,4267
+(defclass image 146,5381
+(defun load-image 154,5586
+(defun delete-image 161,5837
+(defun draw-image 165,5905
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/main.lisp,2149
+(defpackage :lem-sdl21,0
+(defconstant +display-width+ 19,454
+(defconstant +display-height+ 20,488
+(defun on-mouse-button-down 22,523
+(defun on-mouse-button-up 37,1169
+(defun on-mouse-motion 50,1715
+(defun on-mouse-wheel 61,2149
+(defun on-textediting 73,2624
+(defun on-textinput 77,2738
+(defun on-keydown 84,2947
+(defun on-keyup 88,3040
+(defun on-windowevent 91,3113
+(defun event-loop 105,3677
+(defun init-application-icon 130,4570
+(defun create-display 135,4785
+(defun sbcl-on-darwin-p 180,7305
+(defmethod lem-if:invoke 185,7379
+(defmethod lem-if:get-background-color 221,9242
+(defmethod lem-if:get-foreground-color 226,9440
+(defmethod lem-if:update-foreground 231,9638
+(defmethod lem-if:update-background 237,9885
+(defmethod lem-if:display-width 243,10132
+(defmethod lem-if:display-height 249,10392
+(defmethod lem-if:display-title 255,10656
+(defmethod lem-if:set-display-title 260,10854
+(defmethod lem-if:display-fullscreen-p 269,11210
+(defmethod lem-if:set-display-fullscreen-p 274,11456
+(defmethod lem-if:make-view 283,11914
+(defmethod lem-if:delete-view 289,12227
+(defmethod lem-if:clear 295,12435
+(defmethod lem-if:set-view-size 301,12645
+(defmethod lem-if:set-view-pos 307,12904
+(defmethod lem-if:redraw-view-before 313,13133
+(defgeneric render 319,13381
+(defmethod lem-if:redraw-view-after 321,13426
+(defmethod lem-if:will-update-display 336,14274
+(defun set-input-method 344,14705
+(defmethod lem-if:update-display 370,16404
+(defmethod lem-if:increase-font-size 380,16891
+(defmethod lem-if:decrease-font-size 390,17389
+(defmethod lem-if:set-font-size 400,17887
+(defmethod lem-if:resize-display-before 408,18178
+(defmethod lem-if:get-font-list 414,18394
+(defmethod lem-if:get-mouse-position 417,18485
+(defmethod lem-if:get-char-width 427,18862
+(defmethod lem-if:get-char-height 431,18997
+(defmethod lem-if:view-width 435,19134
+(defmethod lem-if:view-height 440,19313
+(defmethod lem-if:clipboard-paste 446,19505
+(defmethod lem-if:clipboard-paste 453,19752
+(defmethod lem-if:clipboard-copy 465,20398
+(defun char-width 475,20679
+(defun char-height 476,20756
+(defun current-renderer 477,20835
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/log.lisp,111
+(defpackage :lem-sdl2/log1,0
+(defun do-log 7,111
+(defun call-with-debug 16,453
+(defmacro with-debug 25,854
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/lem-sdl2.asd,66
+(defsystem "lem-sdl2"1,0
+(defsystem "lem-sdl2/executable"30,860
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/icon.lisp,408
+(defpackage :lem-sdl2/icon1,0
+(defvar all-the-icons-data/alltheicons-alist6,123
+(defvar all-the-icons-data/fa-icon-alist75,2608
+(defvar all-the-icons-data/file-icon-alist715,21184
+(defvar all-the-icons-data/material-icons-alist1216,35156
+(defvar all-the-icons-data/octicons-alist2150,64544
+(defvar all-the-icons-data/weather-icons-alist2314,69135
+(defvar all-the-icons-extension-icon-alist2908,99136
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/color-picker.lisp,1772
+(defpackage :lem-sdl2/color-picker1,0
+(defgeneric render 8,136
+(defgeneric handle-mouse-button-down 9,165
+(defgeneric handle-mouse-button-up 10,223
+(defclass widget 12,269
+(defmethod initialize-instance 33,945
+(defmethod modify 46,1521
+(defmethod render 51,1660
+(defmethod handle-mouse-button-down 74,2893
+(defmethod handle-mouse-button-down 82,3286
+(defmethod handle-mouse-button-up 85,3355
+(defclass vertical-color-slider 88,3411
+(defmethod render 97,3798
+(defmethod handle-mouse-button-down 105,4240
+(defun compute-slider-current-colors 112,4553
+(defun render-vertical-slider 136,5560
+(defclass color-square 162,6795
+(defmethod render 174,7233
+(defmethod handle-mouse-button-down 186,7856
+(defun render-square 192,8068
+(defparameter +square-x+ 256,11469
+(defparameter +square-y+ 257,11497
+(defparameter +square-size+ 258,11525
+(defparameter +slider-x+ 259,11558
+(defparameter +slider-y+ 260,11588
+(defparameter +slider-width+ 261,11616
+(defparameter +slider-height+ 262,11649
+(defclass color-picker 264,11685
+(defmethod initialize-instance 274,11976
+(defmethod render 298,13256
+(defmethod handle-mouse-button-down 302,13380
+(defmethod handle-mouse-button-up 306,13591
+(defclass color-picker-buffer 313,13833
+(defmethod lem-sdl2:render 317,13985
+(defun %handle-mouse-button-down 324,14373
+(defmethod lem:handle-mouse-button-down 332,14751
+(defmethod lem:handle-mouse-button-up 335,14904
+(defmethod lem:handle-mouse-hover 339,15096
+(lem:define-minor-mode color-picker-mode343,15313
+(lem:define-key *color-picker-keymap* 347,15418
+(lem:define-command color-picker-quit 349,15481
+(defun make-color-picker-buffer 353,15674
+(defmethod lem-color-preview:invoke-color-picker 360,15989
+(lem:define-command test-color-picker 365,16232
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/image-buffer.lisp,1334
+(defpackage :lem-sdl2/image-buffer1,0
+(defclass image-buffer 16,338
+(defun buffer-image 18,380
+(defun (setf 21,442
+(defun buffer-scaling 24,530
+(defun (setf 27,596
+(define-major-mode image-viewer-mode 30,692
+(defun image-information 36,914
+(define-key *image-viewer-keymap* 44,1167
+(define-key *image-viewer-keymap* 45,1223
+(define-key *image-viewer-keymap* 46,1277
+(define-key *image-viewer-keymap* 47,1334
+(define-key *image-viewer-keymap* 48,1389
+(define-key *image-viewer-keymap* 49,1448
+(define-key *image-viewer-keymap* 50,1505
+(define-key *image-viewer-keymap* 51,1561
+(define-key *image-viewer-keymap* 53,1652
+(define-key *image-viewer-keymap* 54,1712
+(define-key *image-viewer-keymap* 55,1771
+(defmethod render 57,1832
+(defun scale-buffer-image 68,2419
+(defun reset-buffer-scale 79,2832
+(defun fit-to-width 90,3147
+(defun fit-to-height 101,3592
+(defun fit-to-screen 113,4080
+(define-command image-zoom-in 130,4747
+(define-command image-zoom-out 133,4829
+(define-command image-zoom-reset 136,4913
+(define-command image-fit-to-width 140,5034
+(define-command image-fit-to-height 144,5161
+(define-command image-fit-to-screen 148,5289
+(defclass sdl2-find-file-executor 152,5420
+(defmethod lem:execute-find-file 154,5484
+(defun open-image-buffer 162,5775
+(define-command image-zoom-help 177,6399
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/wm.lisp,100
+(defpackage :lem-sdl2/wm1,0
+(defparameter +lem-x11-wm-class+ 6,96
+(defun set-x11-wm-class 18,689
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/text-surface-cache.lisp,232
+(defpackage :lem-sdl2/text-surface-cache1,0
+(defvar *text-surface-cache* 8,211
+(defstruct cache-entry10,273
+(defun clear-text-surface-cache 15,327
+(defun get-text-surface-cache 18,397
+(defun register-text-surface-cache 24,687
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/tree.lisp,2009
+(defpackage :lem-sdl2/tree1,0
+(defconstant +scroll-unit+ 5,75
+(defclass tree-view-buffer 7,107
+(defmethod tree-view-display-end 25,780
+(defmethod tree-view-scroll-vertically 29,952
+(defmethod tree-view-scroll-horizontally 41,1518
+(defmethod tree-view-scroll-horizontally-first 46,1749
+(defclass node 49,1872
+(defmethod print-object 66,2329
+(defun compute-position-with-rightward-extending 74,2732
+(defclass text-node 92,3633
+(defclass line-edge 106,4001
+(defun compute-width 118,4284
+(defun compute-height 124,4479
+(defun load-font 130,4676
+(defun draw 138,4932
+(defmethod render 181,7334
+(defmethod render 203,8494
+(defun render-all 224,9510
+(defun get-node-at-coordinates 228,9639
+(define-major-mode tree-view-mode 244,10319
+(define-key *tree-view-keymap* 249,10463
+(define-key *tree-view-keymap* 250,10533
+(define-key *tree-view-keymap* 251,10603
+(define-key *tree-view-keymap* 252,10699
+(define-key *tree-view-keymap* 253,10765
+(define-key *tree-view-keymap* 254,10833
+(define-key *tree-view-keymap* 255,10903
+(define-key *tree-view-keymap* 256,10975
+(define-key *tree-view-keymap* 257,11055
+(define-command tree-view-scroll-right 259,11139
+(define-command tree-view-scroll-left 264,11344
+(define-command tree-view-scroll-horizontally-start 269,11552
+(define-command tree-view-scroll-down 272,11669
+(define-command tree-view-scroll-up 277,11867
+(defun scroll-page-unit 282,12067
+(define-command tree-view-scroll-pagedown 285,12179
+(define-command tree-view-scroll-pageup 288,12314
+(define-command tree-view-scroll-bottom 291,12451
+(define-command tree-view-scroll-top 296,12670
+(defmethod lem-sdl2:render 301,12890
+(defmethod execute 309,13332
+(defmethod lem:handle-mouse-button-down 314,13563
+(defmethod lem:handle-mouse-hover 324,14061
+(defun make-tree-view-buffer 330,14366
+(defun draw-tree 336,14559
+(defun find-tree-view-window 343,14741
+(defun make-class-tree 348,14928
+(defmethod lem-lisp-mode/class-browser:display-class-inheritance-tree 366,15868
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/icon-font.lisp,130
+(defpackage :lem-sdl2/icon-font1,0
+(defvar *icon-font-cache* 7,137
+(defun clear-icon-font-cache 9,194
+(defun icon-font 12,258
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/mouse.lisp,146
+(defpackage :lem-sdl2/mouse1,0
+(defvar *cursor-shown* 8,148
+(defun cursor-shown-p 10,175
+(defun show-cursor 13,219
+(defun hide-cursor 17,290
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/platform.lisp,215
+(defpackage :lem-sdl2/platform1,0
+(defclass platform 11,199
+(defclass linux 12,225
+(defclass windows 13,256
+(defclass mac 14,289
+(defclass freebsd 15,318
+(defvar *platform* 17,352
+(defun get-platform 19,377
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/keyboard.lisp,1520
+(defpackage :lem-sdl2/keyboard1,0
+(defstruct (keyinfo 11,258
+(defparameter *code-name-table*16,325
+(defun convert-to-sym 45,1403
+(defun make-key 53,1671
+(defstruct modifier75,2394
+(defstruct (key-event 81,2446
+(defun make-key-event 85,2520
+(defun keysym-to-key-event 88,2610
+(defparameter *modifier-code-table*93,2765
+(defun mod-p 99,3036
+(defun get-modifier 104,3184
+(defun update-modifier 112,3464
+(defvar *modifier* 118,3769
+(defvar *textediting-text* 119,3805
+(defmethod handle-textediting 121,3837
+(defun send-key-event 124,3918
+(defun modifier-is-accept-text-input-p 130,4086
+(defmethod handle-text-input 133,4171
+(defmethod handle-key-down 136,4276
+(defmethod handle-key-up 139,4387
+(defmethod handle-text-input 143,4505
+(defmethod handle-key-down 146,4612
+(defmethod handle-key-up 149,4725
+(defun handle-text-input-unix 153,4859
+(defun handle-key-down-unix 165,5478
+(defun handle-key-up-unix 181,6305
+(defparameter *us-shift-layout*185,6410
+(defparameter *jis-shift-layout*208,6781
+(defparameter *shift-layout* 232,7169
+(defun set-keyboard-layout 234,7218
+(defun shift-char 242,7419
+(defun make-key-with-shift-careful 250,7637
+(defun handle-text-input-internal 267,8216
+(defun handle-key-down-internal 279,8783
+(defun handle-key-up-internal 297,9702
+(defmethod handle-text-input 300,9808
+(defmethod handle-key-down 303,9915
+(defmethod handle-key-up 306,10028
+(defmethod handle-text-input 310,10148
+(defmethod handle-key-down 313,10259
+(defmethod handle-key-up 316,10376
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/sdl2.lisp,52
+(defpackage :lem-sdl2/sdl21,0
+(defclass sdl2 6,88
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/view.lisp,490
+(defpackage :lem-sdl2/view1,0
+(defclass view 25,465
+(defmethod set-cursor-position 54,1023
+(defmethod last-cursor-x 58,1147
+(defmethod last-cursor-y 64,1354
+(defun create-view 70,1562
+(defmethod delete-view 81,1965
+(defmethod render-clear 86,2115
+(defmethod resize 91,2374
+(defmethod move-position 99,2693
+(defmethod draw-window-border 103,2787
+(defmethod draw-window-border 114,3463
+(defmethod render-border-using-view 122,3903
+(defun render-view-texture-to-display 125,4018
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/font.lisp,520
+(defpackage :lem-sdl2/font1,0
+(defparameter *default-font-size* 25,650
+(defun default-font-size 27,689
+(defstruct (font-config 29,739
+(defstruct font38,906
+(defun save-font-size 48,1051
+(defun make-font-config 52,1204
+(defun merge-font-config 84,2782
+(defun change-size 100,3815
+(defun get-character-size 105,3973
+(defun open-font 111,4193
+(defun close-font 136,5739
+(defgeneric get-font-list 145,6081
+(defmethod get-font-list 147,6120
+(defmethod get-font-list 150,6164
+(defmethod get-font-list 156,6543
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resource.lisp,107
+(defpackage :lem-sdl2/resource1,0
+(defvar *resource-directory* 6,113
+(defun get-resource-pathname 8,148
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/utils.lisp,91
+(defpackage :lem-sdl2/utils1,0
+(defun create-texture 7,127
+(defun render-texture 14,377
+
+welcome.lisp,963
+(defpackage :lem.welcome10,320
+(define-major-mode welcome-mode 26,666
+(defvar *playing-p* 37,913
+(defconstant +field-width+ 47,1075
+(defconstant +field-height+ 48,1106
+(defparameter *block-attributes*52,1177
+(defparameter *wall-attribute*57,1391
+(defparameter *grass-attribute*60,1473
+(defparameter *tree-attribute*63,1557
+(defparameter *color-3* 66,1640
+(defun draw 70,1746
+(defun init-player 84,2134
+(defun init-field 91,2234
+(define-command welcome-move-left 100,2417
+(define-command welcome-move-right 105,2512
+(define-command welcome-move-up 110,2608
+(define-command welcome-move-down 115,2701
+(define-command welcome-quit 127,2894
+(defun insert-block 137,3054
+(define-key *welcome-mode-keymap* 143,3211
+(define-key *welcome-mode-keymap* 144,3272
+(define-key *welcome-mode-keymap* 145,3335
+(define-key *welcome-mode-keymap* 146,3396
+(define-key *welcome-mode-keymap* 147,3452
+(defun update 150,3538
+(define-command welcome 164,3808
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/README.md,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/folder.png,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/icon.png,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/NotoSansCJK-Regular.ttc,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/all-the-icons.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/FreeMono.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/file-icons.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/NotoSansMono-Bold.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/material-design-icons.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/NotoSansMono-Regular.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/NotoColorEmoji.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/NotoSansCJK-Bold.ttc,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/octicons.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts/fontawesome.ttf,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/fonts,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources/open-folder.png,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2/resources,0
+
+/home/terry/src/lem-editor/lem/frontends/sdl2,0
