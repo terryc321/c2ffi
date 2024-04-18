@@ -842,6 +842,13 @@
 
 ;; a special one off - key definition - just 255 more to go ...
 (defparameter +sdl-scancode-escape+ 41)
+(defparameter +sdl-scancode-up+ 82)
+(defparameter +sdl-scancode-left+ 80)
+(defparameter +sdl-scancode-down+ 81)
+(defparameter +sdl-scancode-right+ 79)
+
+
+
 
 (defparameter *scancodes* 
   '(
@@ -1261,6 +1268,9 @@
 (defparameter *mouse-x* 0)
 (defparameter *mouse-y* 0)
 
+(defparameter *player-x* 0)
+(defparameter *player-y* 0)
+
 
 ;; -------- some cairo utilities
 ;; #include <cairo.h>
@@ -1349,10 +1359,10 @@
   (blue :double)
   )
 
-    ;; (autowrap:define-foreign-function
-    ;;  '(cairo-set-source-rgba "cairo_set_source_rgba") ':void
-    ;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
-    ;;    (|blue| :double) (|alpha| :double)))
+;; (autowrap:define-foreign-function
+;;  '(cairo-set-source-rgba "cairo_set_source_rgba") ':void
+;;  '((|cr| (:pointer cairo-t)) (|red| :double) (|green| :double)
+;;    (|blue| :double) (|alpha| :double)))
 (cffi:defcfun ("cairo_set_source_rgba" cairo-set-source-rgba) :void
   (cr :pointer)
   (red :double)
@@ -1612,32 +1622,32 @@
 
 (defun noisy (cr)
   
-    ;; cannot get a clear answer on what cairo_surface_t looks like
-    ;; is it same as sdl-surface ??
-    ;;(format t "--- cairo pixels ---~%")
-    (let* ((width (cairo-image-surface-get-width cr))
-	   (height (cairo-image-surface-get-height cr))
-	   (stride (cairo-image-surface-get-stride cr))
-	   (pixels (cairo-image-surface-get-data cr)))
+  ;; cannot get a clear answer on what cairo_surface_t looks like
+  ;; is it same as sdl-surface ??
+  ;;(format t "--- cairo pixels ---~%")
+  (let* ((width (cairo-image-surface-get-width cr))
+	 (height (cairo-image-surface-get-height cr))
+	 (stride (cairo-image-surface-get-stride cr))
+	 (pixels (cairo-image-surface-get-data cr)))
 
-      ;; (loop for i from 0 to  do
-      ;; 	(let ((red (cffi:mem-ref pixels :char   (* i 3)))
-      ;; 	      (green (cffi:mem-ref pixels :char (+ 1 (* i 3))))
-      ;; 	      (blue (cffi:mem-ref pixels :char  (+ 2  (* i 3)))))
-      ;; 	  (format t "~A ~a ~a : " red green blue)))
+    ;; (loop for i from 0 to  do
+    ;; 	(let ((red (cffi:mem-ref pixels :char   (* i 3)))
+    ;; 	      (green (cffi:mem-ref pixels :char (+ 1 (* i 3))))
+    ;; 	      (blue (cffi:mem-ref pixels :char  (+ 2  (* i 3)))))
+    ;; 	  (format t "~A ~a ~a : " red green blue)))
 
-      ;; hopefully some random noise
-      (loop for y from 0 to (- height 1) do
-	(loop for x from 0 to (- stride 1) by 3 do
-	  (when
-	      ;; border window
-	      (and (> x 30)(< x (- width 30))
-		   (> y 30)(< y (- height 30))))
-	    
-	  (setf (cffi:mem-ref pixels :uchar (+ x 0 (* stride y))) (random 255))
-	  (setf (cffi:mem-ref pixels :uchar (+ x 1 (* stride y))) (random 255))
-	  (setf (cffi:mem-ref pixels :uchar (+ x 2 (* stride y))) (random 255))
-	      ))))
+    ;; hopefully some random noise
+    (loop for y from 0 to (- height 1) do
+      (loop for x from 0 to (- stride 1) by 3 do
+	(when
+	    ;; border window
+	    (and (> x 30)(< x (- width 30))
+		 (> y 30)(< y (- height 30))))
+	
+	(setf (cffi:mem-ref pixels :uchar (+ x 0 (* stride y))) (random 255))
+	(setf (cffi:mem-ref pixels :uchar (+ x 1 (* stride y))) (random 255))
+	(setf (cffi:mem-ref pixels :uchar (+ x 2 (* stride y))) (random 255))
+	    ))))
 
 
 
@@ -1660,10 +1670,10 @@
   (width :double))
 
 
-(cffi:defcfun ("cairo_move_to" cairo-move-to) :void
-  (cr :pointer)
-  (x :double)
-  (y :double))
+;; (cffi:defcfun ("cairo_move_to" cairo-move-to) :void
+;;   (cr :pointer)
+;;   (x :double)
+;;   (y :double))
 
 (cffi:defcfun ("cairo_line_to" cairo-line-to) :void
   (cr :pointer)
@@ -1686,7 +1696,7 @@
   (y3 :double))
 
 
-  
+
 
 
 
@@ -1706,49 +1716,50 @@
 
 
 ;; poem 
-  ;; cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
+;; cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
 
-  ;; cairo_select_font_face(cr, "Purisa",
-  ;;     CAIRO_FONT_SLANT_NORMAL,
-  ;;     CAIRO_FONT_WEIGHT_BOLD);
+;; cairo_select_font_face(cr, "Purisa",
+;;     CAIRO_FONT_SLANT_NORMAL,
+;;     CAIRO_FONT_WEIGHT_BOLD);
 
-  ;; cairo_set_font_size(cr, 13);
+;; cairo_set_font_size(cr, 13);
 
-  ;; cairo_move_to(cr, 20, 30);
-  ;; cairo_show_text(cr, "Most relationships seem so transitory");
-  ;; cairo_move_to(cr, 20, 60);
-  ;; cairo_show_text(cr, "They're all good but not the permanent one");
+;; cairo_move_to(cr, 20, 30);
+;; cairo_show_text(cr, "Most relationships seem so transitory");
+;; cairo_move_to(cr, 20, 60);
+;; cairo_show_text(cr, "They're all good but not the permanent one");
 
-  ;; cairo_move_to(cr, 20, 120);
-  ;; cairo_show_text(cr, "Who doesn't long for someone to hold");
+;; cairo_move_to(cr, 20, 120);
+;; cairo_show_text(cr, "Who doesn't long for someone to hold");
 
-  ;; cairo_move_to(cr, 20, 150);
-  ;; cairo_show_text(cr, "Who knows how to love you without being told");
-  ;; cairo_move_to(cr, 20, 180);
-  ;; cairo_show_text(cr, "Somebody tell me why I'm on my own");
-  ;; cairo_move_to(cr, 20, 210);
-  ;; cairo_show_text(cr, "If there's a soulmate for everyone");
+;; cairo_move_to(cr, 20, 150);
+;; cairo_show_text(cr, "Who knows how to love you without being told");
+;; cairo_move_to(cr, 20, 180);
+;; cairo_show_text(cr, "Somebody tell me why I'm on my own");
+;; cairo_move_to(cr, 20, 210);
+;; cairo_show_text(cr, "If there's a soulmate for everyone");
 
 (defun poem (cr)
   (cairo-set-source-rgb cr 0.8d0 0.8d0 0.8d0)
   (cairo-select-font-face cr "Purisa" +cairo-font-slant-normal+ +cairo-font-weight-bold+)
   (cairo-set-font-size cr 13.0d0)
   (cairo-move-to cr 20d0 30d0)
-  (cairo-show-text cr "Most relationships seem so transitory")
+  (cairo-show-text cr "Move mouse around tracked by green square")
   (cairo-move-to cr 20d0 60d0)
-  (cairo-show-text cr "Who doesn't long for someone to hold")
+  (cairo-show-text cr "Keys Up / Down / Left / Right move the red square")
   (cairo-move-to cr 20d0 120d0)
-  (cairo-show-text cr "Who knows how to love you without being told")
+  (cairo-show-text cr "Example of SDL + Cairo integration using c2ffi + libffi + cffi ")
   (cairo-move-to cr 20d0 150d0)
-  (cairo-show-text cr "Somebody tell me why I'm on my own")
+  (cairo-show-text cr "Can feel there are hundreds key press events that are ignored vs mouse movement.")
   (cairo-move-to cr 20d0 180d0)
-  (cairo-show-text cr "If there's a soulmate for everyone")
+  (cairo-show-text cr "Written in common lisp using foreign function interfaces no extra C code")
   )
 
 
-  
-  
-  
+
+
+
+
 
 (defun demo ()
   ;; (let ((window nil)
@@ -1834,7 +1845,7 @@
 					      blue-mask
 					      alpha-mask)))
   
-  ;(format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
+					;(format t "created sdl-surface : err[~a] ~%" (sdl-get-error))
 
 
   ;; (setq cr (cairo-create sdl-surface))
@@ -1952,17 +1963,17 @@
   ;; should follow mouse
   (cairo-set-source-rgba cr 0.2d0 0.2d0 0.2d0 1.0d0)
   (cairo-rectangle cr
-		   (+ *mouse-x* 0.0d0)
-		   (+ *mouse-y* 0.0d0)
-		   (+ *mouse-x* 50.0d0)
-		   (+ *mouse-y* 50.0d0))
-		  ;; 50d0 50d0); half 640 x 480 screen
+  (+ *mouse-x* 0.0d0)
+  (+ *mouse-y* 0.0d0)
+  (+ *mouse-x* 50.0d0)
+  (+ *mouse-y* 50.0d0))
+  ;; 50d0 50d0); half 640 x 480 screen
   (cairo-fill cr);
- |#
+  |#
   
-  ;(my-cairo-report cr "cairo-set-source-rgba")
-  ;(my-cairo-report cr "cairo rectangle 0 0 to 320 240")
-  ;(my-cairo-report cr "cairo flll")
+					;(my-cairo-report cr "cairo-set-source-rgba")
+					;(my-cairo-report cr "cairo rectangle 0 0 to 320 240")
+					;(my-cairo-report cr "cairo flll")
   ;;(cairo-surface-flush cr)
   ;;(my-cairo-report cr "cairo flush")
 
@@ -1986,7 +1997,7 @@
   ;; (when (not (zerop (cairo-status cr)))
   ;;   (format t "cairo-rectangle failed"))
 
-    ;; (format t "cairo fill : err[~a]~%" (sdl-get-error))
+  ;; (format t "cairo fill : err[~a]~%" (sdl-get-error))
   ;; (when (not (zerop (cairo-status cr)))
   ;;   (format t "cairo-fill failed "))
 
@@ -2129,16 +2140,16 @@
       (cairo-rectangle cr 100d0 100d0 125d0 125d0)
       (cairo-stroke cr)
       
-	  ;; cairo_set_source_rgb (cr, 0, 0, 0);
-	  ;; cairo_rectangle (cr, 0.25, 0.25, 0.5, 0.5);
-	  ;; cairo_stroke (cr);
+      ;; cairo_set_source_rgb (cr, 0, 0, 0);
+      ;; cairo_rectangle (cr, 0.25, 0.25, 0.5, 0.5);
+      ;; cairo_stroke (cr);
 
 
       ;; doing this seems extremely slow 
       ;; (sdl-set-render-draw-color render 255 0 0 0) ;; RED BACKGROUND ?
       ;; (sdl-renderclear render)      
       ;; (sdl-renderpresent render)
- 
+      
       ;; draw a line
 
       
@@ -2172,7 +2183,14 @@
       ;; some cairo stuff
       (cairo-set-source-rgba cr 1.0d0 0.0d0 0.0d0 1.0d0)
       ;;(my-cairo-report cr "cairo-set-source-rgba")
-      (cairo-rectangle cr  50d0  50d0 30d0 30d0); half 640 x 480 screen
+      ;;(cairo-rectangle cr  50d0  50d0 30d0 30d0); half 640 x 480 screen
+
+      ;; red box at player x,y width 30 height 30 pixels
+      (cairo-rectangle cr
+		       (+ 0.0d0 (* 20 *player-x*))
+		       (+ 0.0d0 (* 20 *player-y*))
+		       30d0
+		       30d0)
       ;;(my-cairo-report cr "cairo rectangle 0 0 to 320 240")
       (cairo-fill cr);
       ;;(my-cairo-report cr "cairo flll")
@@ -2210,7 +2228,7 @@
       (cairo-stroke-preserve cr)      
       (cairo-fill cr)
 
-            
+      
       (cairo-set-source-rgb cr 0.1d0 0.9d0 0.7d0)
       ;; automatic double float conversion required > asap
       (cairo-move-to cr 380d0 140d0)
@@ -2219,7 +2237,7 @@
       (cairo-curve-to cr 440d0 255d0 380d0 245d0 380d0 140d0)
       (cairo-stroke-preserve cr)      
       (cairo-fill cr)
-     
+      
       
       (cairo-set-source-rgba cr 0.2d0 0.5d0 0.2d0 1.0d0)
       (cairo-rectangle cr
@@ -2399,7 +2417,16 @@
 		      ;; 	      )
 
 		      ;; alt keys do not seem to be detected correctly on cherry keyboard ...
-		      
+
+		      (when (= scancode +sdl-scancode-up+)
+			(decf *player-y*))
+		      (when (= scancode +sdl-scancode-down+)
+			(incf *player-y*))
+		      (when (= scancode +sdl-scancode-left+)
+			(decf *player-x*))
+		      (when (= scancode +sdl-scancode-right+)
+			(incf *player-x*))
+		      		      
 		      ;; if press escape key
 		      (when (= scancode +sdl-scancode-escape+)
 			(setq *close* t)

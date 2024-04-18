@@ -1,5 +1,33 @@
 # c2ffi
 
+## cairo - sdl2 - common lisp 
+
+here is version use common lisp + c2ffi to generate relevant procedure bindings
+
+actually can write most of it without an automated scripting c2ffi to extract clang llvm 
+headers and struct information from c files / header files
+
+nice experiment to see what it takes to get something off the ground
+
+really want a back end that suffers details of graphics , front end simply 
+says 
+
+2 dimensional graphics protocol 
+
+clear-buffer
+draw-rectangle filled orange 
+draw-lines
+present-buffer
+
+...
+
+
+
+
+
+![sdl and cairo together](./cairo-sdl/cairo-sdl-Screenshot_2024-04-18_08-01-57.png)
+
+
 
 ## LEM lem text editor in common lisp
 
