@@ -1,5 +1,37 @@
 # c2ffi
 
+purpose of c2ffi was to see how common lisp can access sdl + cairo , to this end this 
+part of the project has been a success.
+
+difficulty is display code is locked up in an event loop 
+
+if wish to draw something , it has to be in the event loop
+
+find functional approach to coding gives easier to understand answers
+
+much less headache if the system is mainly functional because those class of bugs do not creep in
+
+whereas mutation ...
+
+but a hash map , surely mutation is a good thing ?
+
+....
+
+what like now is to see how to code a user interface using sdl and cairo .
+
+for example , visualise a running common lisp program , debug it , see solution played out in
+real time , ability to step forwards and backwards , 
+check values , 
+evaluate expressions 
+
+problems come up are if mutation is allowed , then how can we step backwards in time ?
+
+mutation raises other difficulties like sharing between threads , can we use a value if our value 
+is over-written ?
+
+....
+
+
 ## cairo - sdl2 - common lisp 
 
 here is version use common lisp + c2ffi to generate relevant procedure bindings
