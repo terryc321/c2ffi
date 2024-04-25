@@ -3,7 +3,12 @@
 mouse up / down , mouse motion , key press up down detection , rectangles , text 
 
 
-![sdl and cairo together](./success-screenshot-2024-04-17.png)
+![sdl and cairo together](./cairo-sdl/cairo-sdl-Screenshot_2024-04-18_08-01-57.png)
+
+here is a keyboard scancode sdl example in common lisp
+
+![keyboard](./cairo-sdl/keyboard-Screenshot_2024-04-25_23-59-31.png)
+
 
 need to do a simple c program to see how to do SDL stuff and CAIRO stuff together simplest possible.
 

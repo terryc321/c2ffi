@@ -483,7 +483,6 @@ if(keystates[SDL_SCANCODE_RIGHT]) {
       ;; (poem cr)
       
 
-
       ;; 
       
       ;;(setq texture (sdl-createtexturefromsurface render cr))
