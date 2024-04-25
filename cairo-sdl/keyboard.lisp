@@ -26,6 +26,27 @@ ESCAPE F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
 array holds whether key is pressed or not
 depending on combination what the "text editor" will see
 
+
+https://stackoverflow.com/questions/29373203/sdl-2-0-key-repeat-and-delay
+
+//...
+SDL_Event sdlEvent;
+while (SDL_PollEvent(&sdlEvent)) {
+    if (sdlEvent.type == SDL_QUIT) {
+        //..
+    }
+}
+
+const Uint8* keystates = SDL_GetKeyboardState(NULL);
+
+if(keystates[SDL_SCANCODE_LEFT]) {
+    //...
+}
+if(keystates[SDL_SCANCODE_RIGHT]) {
+    /...
+}
+
+
 |#
 
 
@@ -209,35 +230,52 @@ depending on combination what the "text editor" will see
 	(draw-key 229 (+ x (* dx 24)) y "Rsf")
 	)
       
-
       (let* ((x 100)(dx 16)(width 25)(dy 24)(y (+ (* 6 25) dy)))
 	(draw-key 224 (+ x (* dx 0)) y  "Lct")
 	(draw-key 227 (+ x (* dx 2)) y   "Lwin")
 	(draw-key 226 (+ x (* dx 4)) y  "Lalt")
 	(draw-key 44 (+ x (* dx 6)) y   "spc")
-	(draw-key 230 (+ x (* dx 8)) y   "Ralt") ;;
-	(draw-key 231 (+ x (* dx 10)) y "Rwin")
-	(draw-key 101 (+ x (* dx 12)) y "Calc")
-	(draw-key 228 (+ x (* dx 14)) y "Rctl")
+	(draw-key 44 (+ x (* dx 8)) y   "spc")
+	(draw-key 44 (+ x (* dx 10)) y   "spc")
+	(draw-key 44 (+ x (* dx 12)) y   "spc")
+	(draw-key 44 (+ x (* dx 14)) y   "spc")
+	(draw-key 44 (+ x (* dx 16)) y   "spc")
+	(draw-key 44 (+ x (* dx 18)) y   "spc")
+	
+	(draw-key 230 (+ x (* dx 20)) y   "Ralt") ;;
+	(draw-key 231 (+ x (* dx 22)) y "Rwin")
+	(draw-key 101 (+ x (* dx 24)) y "Calc")
+	(draw-key 228 (+ x (* dx 26)) y "Rctl")
 	)
       
       (let* ((x 100)(dx 16)(width 25)(dy 24)(y (+ (* 7 25) dy)))
-	(draw-key 80 (+ x (* dx 0)) y  "lft")
-	(draw-key 79 (+ x (* dx 2)) y   "rgt")
-	(draw-key 81 (+ x (* dx 6)) y   "down")
-	(draw-key 82 (+ x (* dx 4)) y  "up")
+
+	(draw-key 82 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 5 25)) "Up")
+	(draw-key 80 (+ 100 (* dx 26) (* dx 4)) (+ 24 (* 6 25)) "Lft")
+	(draw-key 81 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 6 25)) "Dwn")
+	(draw-key 79 (+ 100 (* dx 26) (* dx 8)) (+ 24 (* 6 25)) "Rgt")
+
+	;; (draw-key 80 (+ x (* dx 0)) y  "lft")
+	;; (draw-key 79 (+ x (* dx 2)) y   "rgt")
+	;; (draw-key 81 (+ x (* dx 6)) y   "down")
+	;; (draw-key 82 (+ x (* dx 4)) y  "up")
 	)
       
       (let* ((x 100)(dx 16)(width 25)(dy 24)(y (+ (* 8 25) dy)))
-	;;(draw-key 224 (+ x (* dx 0)) y  "Scrl") ;;; Print key unable to get as xfce took it	
-	(draw-key 71 (+ x (* dx 0)) y  "Scrl")
-	(draw-key 72 (+ x (* dx 2)) y   "Pas")
-	(draw-key 73 (+ x (* dx 4)) y  "Ins")
-	(draw-key 74 (+ x (* dx 6)) y   "Hom")
-	(draw-key 75 (+ x (* dx 8)) y   "Pgup") ;;
-	(draw-key 76 (+ x (* dx 10)) y "Del")
-	(draw-key 77 (+ x (* dx 12)) y "End")
-	(draw-key 78 (+ x (* dx 14)) y "Pgdn")
+
+	;;(draw-key 71 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 1 25))  "Prn") ;; print key
+	
+	(draw-key 71 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 1 25))  "Scl")
+	(draw-key 72 (+ 100 (* dx 26) (* dx 8)) (+ 24 (* 1 25))  "Pau")
+
+	(draw-key 73 (+ 100 (* dx 26) (* dx 4)) (+ 24 (* 2 25))  "Ins")
+	(draw-key 74 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 2 25))   "Hom")
+	(draw-key 75 (+ 100 (* dx 26) (* dx 8)) (+ 24 (* 2 25))   "Pgup")
+	
+	;;(draw-key 75 (+ x (* dx 8)) y   "Pgup") ;;
+	(draw-key 76 (+ 100 (* dx 26) (* dx 4)) (+ 24 (* 3 25)) "Del")
+	(draw-key 77 (+ 100 (* dx 26) (* dx 6)) (+ 24 (* 3 25)) "End")
+	(draw-key 78 (+ 100 (* dx 26) (* dx 8)) (+ 24 (* 3 25)) "Pgdn")
 	)
 
       ;; ;; calc 266
