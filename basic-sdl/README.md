@@ -10,6 +10,8 @@ like to get cairo graphics integrated now too
 maybe try some text writing ...
 
 
+this is how to start a fresh project using quickproject
+
 ```lisp
 (ql:quickload "quickproject")
 (quickproject:make-project "~/code/c2ffi/scandal-sdl"
