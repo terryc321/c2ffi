@@ -1,4 +1,29 @@
+
 # cairo-sdl
+
+## installation 
+
+just put entire git repository into quicklisp/local-projects 
+was ~/.quicklisp/local-projects
+but now is ~/quicklisp/local-projects ....
+
+# demos 
+
+## basic.lisp 
+
+![basic 1](../pictures/basic001.png)
+![basic 2](../pictures/basic002.png)
+
+- red screen move mouse and line from 0,0 to mouse-x,y 
+- looks like all key events are being recorded also SDL_SCANCODE_COMMA etc..
+
+(load "basic.lisp")
+(in-package :temp)
+(demo)
+
+
+
+
 
 mouse up / down , mouse motion , key press up down detection , rectangles , text 
 
